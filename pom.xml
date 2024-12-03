@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.example</groupId>
+    <groupId>com.jrees</groupId>
     <artifactId>FinaLRequirements_Infoman</artifactId>
     <version>1.0-SNAPSHOT</version>
     <name>FinaLRequirements_Infoman</name>
@@ -38,6 +38,17 @@
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <version>9.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mindrot</groupId>
+            <artifactId>jbcrypt</artifactId>
+            <version>0.4</version>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -61,7 +72,7 @@
                         <id>default-cli</id>
                         <configuration>
                             <mainClass>
-                                org.example.finalrequirements_infoman/org.example.finalrequirements_infoman.Main
+                                org.example.finalrequirements_infoman/com.jrees.finalrequirements_infoman.Main
                             </mainClass>
                             <launcher>app</launcher>
                             <jlinkZipName>app</jlinkZipName>
