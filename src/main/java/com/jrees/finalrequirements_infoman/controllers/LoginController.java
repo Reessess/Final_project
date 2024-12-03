@@ -36,12 +36,19 @@ public class LoginController {
             return;
         }
 
-        if (authenticateUser(enteredUsername, enteredPassword)) {
-            // Open Home Screen
-            openHomeScreen();
-        } else {
-            showAlert(Alert.AlertType.ERROR, "Login Failed", "Invalid username or password.");
-        }
+        // Authenticate user in a background thread
+        new Thread(() -> {
+            boolean isAuthenticated = authenticateUser(enteredUsername, enteredPassword);
+
+            // Switch back to JavaFX Application Thread to update the UI
+            javafx.application.Platform.runLater(() -> {
+                if (isAuthenticated) {
+                    openHomeScreen();
+                } else {
+                    showAlert(Alert.AlertType.ERROR, "Login Failed", "Invalid username or password.");
+                }
+            });
+        }).start();
     }
 
     private boolean authenticateUser(String username, String password) {
@@ -54,14 +61,37 @@ public class LoginController {
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                String hashedPassword = rs.getString("password");
-                return BCrypt.checkpw(password, hashedPassword); // Verify hashed password
+                String storedHash = rs.getString("password");
+
+                // Check if password hash uses an old version of the salt (e.g., $2a$)
+                if (BCrypt.checkpw(password, storedHash)) {
+                    // If the password matches but the salt version is outdated, rehash and update the password in the database
+                    if (storedHash.startsWith("$2a$")) {  // This checks if it uses the old salt version
+                        String newHash = BCrypt.hashpw(password, BCrypt.gensalt());
+                        updatePasswordInDatabase(username, newHash); // Update the password hash in the database
+                    }
+                    return true;
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Database Error", "An error occurred while connecting to the database.");
         }
         return false;
+    }
+
+    private void updatePasswordInDatabase(String username, String newHash) {
+        String updateQuery = "UPDATE users SET password = ? WHERE username = ?";
+        try (Connection connection = new Database().getConnection();
+             PreparedStatement ps = connection.prepareStatement(updateQuery)) {
+            ps.setString(1, newHash);
+            ps.setString(2, username);
+            ps.executeUpdate();
+            System.out.println("Password rehashed and updated successfully.");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Database Error", "An error occurred while updating the password.");
+        }
     }
 
     private void openHomeScreen() {
