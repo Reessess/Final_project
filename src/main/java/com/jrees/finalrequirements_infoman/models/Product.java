@@ -15,16 +15,20 @@ public class Product {
         this.price = new SimpleDoubleProperty(price);
         this.quantity = new SimpleIntegerProperty(quantity);
     }
+
     // Property Getters
     public IntegerProperty getProductIdProperty() {
         return productId;
     }
+
     public StringProperty getNameProperty() {
         return name;
     }
+
     public DoubleProperty getPriceProperty() {
         return price;
     }
+
     public IntegerProperty getQuantityProperty() {
         return quantity;
     }
@@ -33,42 +37,47 @@ public class Product {
     public int getProductId() {
         return productId.get();
     }
+
     public String getName() {
         return name.get();
     }
+
     public double getPrice() {
         return price.get();
     }
+
     public int getQuantity() {
         return quantity.get();
     }
+
+    // Alias Getter for Stock
+    public int getStock() {
+        return getQuantity(); // Alias for quantity to match terminology in handleSearch
+    }
+
     // Regular Setters
     public void setPrice(double price) {
         this.price.set(price);
     }
+
     public void setQuantity(int quantity) {
         this.quantity.set(quantity);
     }
+
     // Method to update stock quantity in memory and in the database
     public boolean updateQuantity(int quantityToAddToCart) {
-        // Get the current stock
         int currentStock = this.quantity.get();
 
-        // Check if there is enough stock to add to the cart
         if (currentStock <= 0 || currentStock < quantityToAddToCart) {
             System.out.println("Insufficient stock for Product ID: " + productId.get());
-            return false;  // Not enough stock to add to the cart
+            return false;
         }
 
-        // Calculate the new stock after deducting from available stock
         int newStock = currentStock - quantityToAddToCart;
-
-        // Update the local quantity state
         this.quantity.set(newStock);
 
-        // Initialize Database and update the stock in the database (deducting stock)
         Database db = new Database();
-        boolean success = db.updateProductStock(this.productId.get(), quantityToAddToCart);  // Deduct stock from database when adding to cart
+        boolean success = db.updateProductStock(this.productId.get(), quantityToAddToCart);
         db.closeConnection();
 
         if (success) {
@@ -77,7 +86,7 @@ public class Product {
             System.out.println("Failed to update stock in database for Product ID: " + productId.get());
         }
 
-        return success;  // Return success or failure of the database update
+        return success;
     }
 
     // Method to decrease stock when added to cart
@@ -90,13 +99,12 @@ public class Product {
         updateQuantity(quantityToIncrease);
     }
 
-    // String representation of the product
     @Override
     public String toString() {
         return String.format("Product ID: %d, Name: %s, Price: ₱%.2f, Quantity Available: %d",
                 getProductId(), getName(), getPrice(), getQuantity());
     }
-    // Equality check based on product ID
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -105,7 +113,6 @@ public class Product {
         return productId.get() == product.productId.get();
     }
 
-    // HashCode based on product ID for consistent equality checks
     @Override
     public int hashCode() {
         return Integer.hashCode(productId.get());

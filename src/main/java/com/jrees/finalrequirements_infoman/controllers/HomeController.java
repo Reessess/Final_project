@@ -13,6 +13,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Optional;
 
 public class HomeController {
 
@@ -29,7 +30,7 @@ public class HomeController {
     @FXML
     private TextField resultProductName, totalPriceField, calculatorTotalField, cashField, changeField;
     @FXML
-    private Button addProductButton, removeProductButton, searchButton, checkoutButton;
+    private Button addNewProductButton, removeProductFromTableButton;
     @FXML
     private TableView<CartItem> cartTableView;
     @FXML
@@ -39,9 +40,17 @@ public class HomeController {
     @FXML
     private TableColumn<CartItem, Double> cartPriceColumn;
     @FXML
-    private TextField customerNameField;
+    private TextField resultProductPrice;
+    @FXML
+    private TextField resultProductQuantity;
     @FXML
     private TextArea receiptTextArea;
+    @FXML
+    private TextField productNameField;
+    @FXML
+    private TextField productStockField;
+    @FXML
+    private  TextField productPriceField;
 
     private ObservableList<Product> productList = FXCollections.observableArrayList();
     private ObservableList<CartItem> cartList = FXCollections.observableArrayList();
@@ -86,8 +95,100 @@ public class HomeController {
                 ));
             }
         } catch (SQLException e) {
-            showAlert("Database Error", "Error loading products from the database.");
+            // Just print the error stack trace, no alert is shown now
             e.printStackTrace();
+        }
+    }
+
+
+    @FXML
+    public void handleAddProduct() {
+        // Get values from the input fields
+        String productName = productNameField.getText();
+        String productPriceText = productPriceField.getText();
+        String productQuantityText = productStockField.getText();
+
+        // Check if all fields are filled
+        if (productName.isEmpty() || productPriceText.isEmpty() || productQuantityText.isEmpty()) {
+            showAlert("Invalid Input", "Please fill in all fields to add a product.");
+            return;
+        }
+
+        try {
+            // Convert the price and quantity values
+            double price = Double.parseDouble(productPriceText);
+            int quantity = Integer.parseInt(productQuantityText);
+
+            // Create a Database instance
+            Database db = new Database();
+
+            // Insert the new product into the database and get the generated product_id
+            int generatedProductId = db.addProduct(productName, price, quantity);
+
+            if (generatedProductId != -1) {
+                // Manually add the new product to the list after insertion, now with the correct product_id
+                productList.add(new Product(generatedProductId, productName, price, quantity));
+
+                // Optionally, you can reload products from the database to ensure the list is always current
+                loadProductsFromDatabase();  // Reload the product list from the database
+
+                // Show success message
+                showAlert("Product Added", "Pasok na Pasok Bossing.");
+            } else {
+                showAlert("Error", "Failed to add product to the database.");
+            }
+
+        } catch (NumberFormatException e) {
+            // Handle invalid input format for price or quantity
+            showAlert("Invalid Input", "Price and quantity should be valid numbers.");
+        } catch (Exception e) {
+            // Catch any other unexpected errors
+            showAlert("Error", "An unexpected error occurred while adding the product.");
+            e.printStackTrace();
+        }
+    }
+
+
+    // Remove product from database
+    @FXML
+    public void handleRemoveProduct() {
+        // Get the selected product from the table view
+        Product selectedProduct = productTable.getSelectionModel().getSelectedItem();
+
+        // Check if a product is selected
+        if (selectedProduct != null) {
+            // Create a confirmation dialog for the deletion
+            Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION);
+            confirmationAlert.setTitle("Confirm Deletion");
+            confirmationAlert.setHeaderText("Are you sure you want to remove this product?");
+            confirmationAlert.setContentText("Product: " + selectedProduct.getName());  // Using regular getter getName()
+
+            // Show the dialog and wait for user input
+            Optional<ButtonType> result = confirmationAlert.showAndWait();
+
+            // Check if the user clicked 'OK' (Confirmation)
+            if (result.isPresent() && result.get() == ButtonType.OK) {
+                // Log the product ID and confirmation of removal action
+                System.out.println("Attempting to remove product with ID: " + selectedProduct.getProductId());
+
+                // Remove the product from the database
+                boolean productRemoved = db.removeProduct(selectedProduct.getProductId());  // Using regular getter getProductId()
+
+                // Log the result of the removal action
+                if (productRemoved) {
+                    // Remove from the observable list (productList)
+                    productList.remove(selectedProduct);
+
+                    // Optionally, refresh the UI if needed (e.g., reload products or update table view)
+                    // productTable.refresh();
+
+                    showAlert("Success", "Product removed successfully.");
+                } else {
+                    showAlert("Error", "Failed to remove the product.");
+                }
+            }
+        } else {
+            showAlert("Error", "No product selected.");
         }
     }
 
@@ -190,10 +291,10 @@ public class HomeController {
             Product product = selectedCartItem.getProduct();
 
             // Decrease the quantity in the cart
-            selectedCartItem.setQuantity(selectedCartItem.getQuantity() - 1);
+            selectedCartItem.setQuantity(selectedCartItem.getQuantity() -1);
 
             // Update the local stock by increasing the available stock
-            product.increaseQuantity(+1);
+            product.decreaseQuantity(1);
 
             updateTotalPrice();  // Update the total price of the cart
         } else if (selectedCartItem != null) {
@@ -208,15 +309,28 @@ public class HomeController {
     @FXML
     public void handleSearch() {
         String searchQuery = resultProductName.getText().trim().toLowerCase();
+
+        // Filter the product list based on the search query
         ObservableList<Product> searchResults = FXCollections.observableArrayList(
                 productList.filtered(product -> product.getName().toLowerCase().contains(searchQuery))
         );
 
-        productTable.setItems(searchResults);
         if (searchResults.isEmpty()) {
+            // Show the alert when the search button is clicked and no products are found
             showAlert("No Products Found", "No products match the search query.");
+            resultProductPrice.clear();
+            resultProductQuantity.clear();
+        } else {
+            // Display the details of the first matching product
+            Product firstMatch = searchResults.get(0);
+            resultProductPrice.setText(String.format("%.2f", firstMatch.getPrice()));
+            resultProductQuantity.setText(String.valueOf(firstMatch.getStock()));
         }
+
+        // Update the product table with the filtered results
+        productTable.setItems(searchResults);
     }
+
 
     // Update total price
     private void updateTotalPrice() {

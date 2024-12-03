@@ -1,11 +1,10 @@
 Receipt
 
-Product 2 x12 - ₱1800.0
-Product 3 x15 - ₱3000.0
-Product 1 x0 - ₱0.0
+sdasd x5 - ₱106060.0
+asss x2 - ₱44.0
 
-Total: ₱4800.0
-Cash Given: ₱2121212.0
-Change: ₱2116412.0
+Total: ₱106104.0
+Cash Given: ₱2.1212121212E10
+Change: ₱2.1212015108E10
 
 Thank you for shopping with us!

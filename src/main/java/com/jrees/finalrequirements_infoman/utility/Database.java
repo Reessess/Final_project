@@ -1,16 +1,20 @@
 package com.jrees.finalrequirements_infoman.utility;
 
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import org.mindrot.jbcrypt.BCrypt;
 
+import java.lang.reflect.Type;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 public class Database {
     private Connection connection;
-
 
     public Database() {
         try {
@@ -83,6 +87,89 @@ public class Database {
         return false;
     }
 
+    // Method to add a new product to the database
+    public int addProduct(String productName, double price, int quantity) {
+        String query = "INSERT INTO products (product_name, price, stock) VALUES (?, ?, ?)";
+        try (PreparedStatement stmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, productName);
+            stmt.setDouble(2, price);
+            stmt.setInt(3, quantity);
+
+            // Execute the update
+            int rowsAffected = stmt.executeUpdate();
+            if (rowsAffected > 0) {
+                // Retrieve the generated product_id
+                try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        return generatedKeys.getInt(1);  // Return the generated product_id
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            // Handle SQLException
+            System.err.println("Error while adding product: " + productName);
+            e.printStackTrace();
+        }
+        return -1;  // Return an invalid id if something goes wrong
+    }
+
+
+    public boolean removeProduct(int productId) {
+        // Check if the connection is null or closed, if not establish it
+        if (connection == null) {
+            try {
+                // Re-establish the connection if it is null
+                String dbUrl = "jdbc:mysql://" + Config.DB_HOST + ":" + Config.DB_PORT + "/" + Config.DB_NAME;
+                connection = DriverManager.getConnection(dbUrl, Config.DB_USER, Config.DB_PASSWORD);
+                System.out.println("Reconnected to the database.");
+            } catch (SQLException e) {
+                System.err.println("Error reconnecting to the database.");
+                e.printStackTrace();
+                return false;  // If we cannot connect, return false
+            }
+        } else {
+            // If the connection is not null, check if it is closed
+            try {
+                if (connection.isClosed()) {
+                    // If closed, reconnect
+                    String dbUrl = "jdbc:mysql://" + Config.DB_HOST + ":" + Config.DB_PORT + "/" + Config.DB_NAME;
+                    connection = DriverManager.getConnection(dbUrl, Config.DB_USER, Config.DB_PASSWORD);
+                    System.out.println("Reconnected to the database.");
+                }
+            } catch (SQLException e) {
+                System.err.println("Error checking if the database connection is closed.");
+                e.printStackTrace();
+                return false;
+            }
+        }
+
+        // SQL query to delete the product by its ID
+        String query = "DELETE FROM products WHERE product_id = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, productId);  // Set the product ID in the query
+
+            // Execute the update and check if any rows were affected
+            int rowsAffected = stmt.executeUpdate();
+
+            // Log and check if any rows were affected (i.e., product was removed)
+            if (rowsAffected > 0) {
+                System.out.println("Product with ID " + productId + " removed successfully.");
+                return true;  // Product deleted
+            } else {
+                System.out.println("No product found with ID " + productId);
+                return false;  // No rows affected
+            }
+        } catch (SQLException e) {
+            System.err.println("Error removing product with ID " + productId);
+            e.printStackTrace();
+            return false;
+        } finally {
+            closeConnection();  // Ensure the connection is always closed after the operation
+        }
+    }
+
+
     // Method to update the stock of a product
     public boolean updateProductStock(int productId, int quantityToDeduct) {
         // Check current stock in the database before updating
@@ -128,6 +215,7 @@ public class Database {
             return false;
         }
     }
+
     // Method to record a sale in the sales table
     public void recordSale(int productId, int quantity, double totalPrice) {
         String insertSaleQuery = "INSERT INTO sales (product_id, quantity, total_price, sale_date) VALUES (?, ?, ?, NOW())";

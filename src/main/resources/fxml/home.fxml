@@ -13,6 +13,24 @@
         <VBox alignment="CENTER" prefHeight="759.0" prefWidth="632.0" spacing="20" style="-fx-background-color: #ADD8E6; -fx-border-radius: 15; -fx-border-width: 1px; -fx-border-color: #1E90FF; -fx-padding: 15;" VBox.vgrow="ALWAYS">
             <Label style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1E90FF;" text="Seaside Products" />
 
+            <!-- Product Name, Stock, and Price Text Fields -->
+            <HBox spacing="10">
+                <Label text="Product Name:" />
+                <TextField fx:id="productNameField" editable="true" prefHeight="30.0" prefWidth="180.0" style="-fx-background-color: #F0E68C; -fx-border-radius: 8px; -fx-padding: 5px;" />
+            </HBox>
+
+            <HBox spacing="10">
+                <Label text="Stock:" />
+                <TextField fx:id="productStockField" editable="true" prefHeight="30.0" prefWidth="100.0" style="-fx-background-color: #F0E68C; -fx-border-radius: 8px; -fx-padding: 5px;" />
+            </HBox>
+
+            <!-- Product Price Text Field -->
+            <HBox spacing="10">
+                <Label text="Price:" />
+                <TextField fx:id="productPriceField" editable="true" prefHeight="30.0" prefWidth="100.0" style="-fx-background-color: #F0E68C; -fx-border-radius: 8px; -fx-padding: 5px;" />
+            </HBox>
+
+            <!-- Table to display products -->
             <TableView fx:id="productTable" prefHeight="615.0" style="-fx-background-color: #FFFFFF; -fx-border-radius: 10; -fx-border-color: #1E90FF; -fx-border-width: 1px;" VBox.vgrow="ALWAYS">
                 <columns>
                     <TableColumn fx:id="productIdColumn" prefWidth="100.0" text="Product ID" />
@@ -21,6 +39,19 @@
                     <TableColumn fx:id="productQuantityColumn" prefWidth="63.0" text="Stock" />
                 </columns>
             </TableView>
+
+            <!-- Add and Remove Product Buttons -->
+           <HBox alignment="CENTER" spacing="20">
+                <Button fx:id="addNewProductButton"
+                        style="-fx-background-color: #32CD32; -fx-text-fill: white; -fx-border-radius: 8px; -fx-padding: 10px 20px;"
+                        text="Add Product"
+                        onAction="#handleAddProduct" />
+
+                <Button fx:id="removeProductFromTableButton"
+                        style="-fx-background-color: #FF6347; -fx-text-fill: white; -fx-border-radius: 8px; -fx-padding: 10px 20px;"
+                        text="Remove Product"
+                        onAction="#handleRemoveProduct" />
+            </HBox>
         </VBox>
 
         <!-- Cart Section -->
@@ -43,7 +74,7 @@
                 <Button fx:id="addProductButton" onAction="#handleAddProductToCart" style="-fx-background-color: #32CD32; -fx-text-fill: white; -fx-border-radius: 8px; -fx-padding: 10px 20px;" text="Add to Cart" />
             </HBox>
 
-            <!-- Remove Product Controls -->
+            <!-- Remove Product from cart Controls -->
             <HBox alignment="CENTER" spacing="20">
                 <Button fx:id="decreaseQuantityButton" onAction="#handleDecreaseQuantity" style="-fx-background-color: #FF6347; -fx-text-fill: white; -fx-border-radius: 8px; -fx-padding: 10px 20px;" text="-" />
                 <Button fx:id="increaseQuantityButton" onAction="#handleIncreaseQuantity" style="-fx-background-color: #FF6347; -fx-text-fill: white; -fx-border-radius: 8px; -fx-padding: 10px 20px;" text="+" />
@@ -71,7 +102,7 @@
         </VBox>
     </HBox>
 
-    <!-- Search and Restock Products Section -->
+    <!-- Search and Customer Information Section -->
     <HBox alignment="TOP_LEFT" spacing="20" style="-fx-padding: 20;" HBox.hgrow="ALWAYS">
         <!-- Search Product Section -->
         <VBox alignment="CENTER_LEFT" spacing="10" style="-fx-background-color: #E0FFFF; -fx-border-radius: 15; -fx-border-width: 1px; -fx-border-color: #1E90FF; -fx-padding: 10;" VBox.vgrow="NEVER">
@@ -94,28 +125,6 @@
             </HBox>
         </VBox>
 
-        <!-- Restock Products Section -->
-        <VBox alignment="CENTER_LEFT" spacing="10" style="-fx-background-color: #E0FFFF; -fx-border-radius: 15; -fx-border-width: 1px; -fx-border-color: #1E90FF; -fx-padding: 10;" VBox.vgrow="NEVER">
-            <Label style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1E90FF;" text="Restock Products" />
-
-            <!-- Product Name Input Field -->
-            <HBox spacing="10">
-                <Label text="Product Name:" />
-                <TextField fx:id="restockProductNameField" editable="true" prefHeight="30.0" prefWidth="180.0" style="-fx-background-color: #F0E68C; -fx-border-radius: 8px; -fx-padding: 5px;" />
-            </HBox>
-
-            <!-- Restock Quantity Input Field -->
-            <HBox spacing="10">
-                <Label text="Restock Quantity:" />
-                <TextField fx:id="restockQuantityField" editable="true" prefHeight="30.0" prefWidth="100.0" style="-fx-background-color: #F0E68C; -fx-border-radius: 8px; -fx-padding: 5px;" />
-            </HBox>
-
-            <!-- Restock Button -->
-            <HBox spacing="10">
-                <Button fx:id="restockButton" style="-fx-background-color: #32CD32; -fx-text-fill: white; -fx-border-radius: 8px; -fx-padding: 5px 10px;" text="Restock" />
-            </HBox>
-        </VBox>
-
         <!-- Cash Calculator Section -->
         <VBox alignment="CENTER_LEFT" spacing="10" style="-fx-background-color: #E0FFFF; -fx-border-radius: 15; -fx-border-width: 1px; -fx-border-color: #1E90FF; -fx-padding: 10;" VBox.vgrow="NEVER">
             <Label style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1E90FF;" text="Cash Calculator" />
@@ -131,10 +140,33 @@
                 <Label text="Total Price:" />
                 <TextField fx:id="calculatorTotalField" editable="false" prefHeight="30.0" prefWidth="186.0" style="-fx-background-color: #F0E68C; -fx-border-radius: 8px; -fx-padding: 5px;" />
             </HBox>
+
             <!-- Change Display -->
             <HBox spacing="10">
                 <Label text="Change Due:" />
                 <TextField fx:id="changeField" editable="false" prefHeight="30.0" prefWidth="176.0" promptText="Change" style="-fx-background-color: #F0E68C; -fx-border-radius: 8px; -fx-padding: 5px;" />
+            </HBox>
+        </VBox>
+
+        <!-- Customer Information Section -->
+        <VBox alignment="CENTER_LEFT" spacing="10" style="-fx-background-color: #E0FFFF; -fx-border-radius: 15; -fx-border-width: 1px; -fx-border-color: #1E90FF; -fx-padding: 10;" VBox.vgrow="NEVER">
+            <Label style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1E90FF;" text="Customer Information" />
+
+            <!-- Name and Phone Fields -->
+            <HBox spacing="10">
+                <Label text="Full Name:" />
+                <TextField fx:id="customerNameField" editable="true" prefHeight="30.0" prefWidth="180.0" style="-fx-background-color: #F0E68C; -fx-border-radius: 8px; -fx-padding: 5px;" />
+            </HBox>
+
+            <HBox spacing="10">
+                <Label text="Phone:" />
+                <TextField fx:id="customerPhoneField" editable="true" prefHeight="30.0" prefWidth="180.0" style="-fx-background-color: #F0E68C; -fx-border-radius: 8px; -fx-padding: 5px;" />
+            </HBox>
+
+            <!-- Email -->
+            <HBox spacing="10">
+                <Label text="Email:" />
+                <TextField fx:id="customerEmailField" editable="true" prefHeight="30.0" prefWidth="180.0" style="-fx-background-color: #F0E68C; -fx-border-radius: 8px; -fx-padding: 5px;" />
             </HBox>
         </VBox>
     </HBox>
