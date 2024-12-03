@@ -12,12 +12,13 @@ public class CartItem {
         this.quantity = new SimpleIntegerProperty(quantity);
         this.totalPrice = new SimpleDoubleProperty(product.getPrice() * quantity);
 
-        // Ensure that totalPrice is updated when either product price or quantity changes
+        // Listener to update total price if product price changes
         this.product.addListener((observable, oldValue, newValue) -> updateTotalPrice());
+
+        // Listener to update total price if quantity changes
         this.quantity.addListener((observable, oldValue, newValue) -> updateTotalPrice());
     }
 
-    // Getters and setters
     public Product getProduct() {
         return product.get();
     }
@@ -44,12 +45,12 @@ public class CartItem {
 
     public void setQuantity(int quantity) {
         this.quantity.set(quantity);
-        updateTotalPrice();  // Update total price whenever quantity changes
+        updateTotalPrice();
     }
 
-    // Method to update the total price
     private void updateTotalPrice() {
-        this.totalPrice.set(product.get().getPrice() * quantity.get());  // Recalculate total price
+        // Recalculate total price based on product price and quantity
+        this.totalPrice.set(product.get().getPrice() * quantity.get());
     }
 
     @Override
@@ -62,11 +63,11 @@ public class CartItem {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         CartItem cartItem = (CartItem) o;
-        return product.get().getProductId() == cartItem.product.get().getProductId();  // Compare by product ID
+        return product.get().getProductId() == cartItem.product.get().getProductId();
     }
 
     @Override
     public int hashCode() {
-        return product.get().getProductId();  // Use product ID for hash code
+        return product.get().getProductId();
     }
 }

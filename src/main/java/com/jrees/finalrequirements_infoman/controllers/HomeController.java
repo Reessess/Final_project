@@ -33,19 +33,22 @@ public class HomeController {
     private TextField resultProductName;
 
     @FXML
-    private TextField resultProductQuantity; // Changed to Stock
+    private TextField resultProductQuantity;
 
     @FXML
     private TextField resultProductPrice;
 
     @FXML
-    private TextField totalPriceField; // Renamed resultTotalPrice to totalPriceField
+    private TextField totalPriceField;
 
     @FXML
-    private Button addProductButton, removeProductButton, searchButton;
+    private TextField calculatorTotalField;  // Added field to show total price in calculator
 
     @FXML
-    private TableView<CartItem> cartTableView;  // Change ListView to TableView
+    private Button addProductButton, removeProductButton, searchButton, checkoutButton;
+
+    @FXML
+    private TableView<CartItem> cartTableView;
 
     @FXML
     private TableColumn<CartItem, String> cartProductNameColumn;
@@ -56,8 +59,32 @@ public class HomeController {
     @FXML
     private TableColumn<CartItem, Double> cartPriceColumn;
 
+    @FXML
+    private TextField cashField;
+
+    @FXML
+    private TextField changeField; // Field to display the change
+
+    @FXML
+    public void handleCalculateCash() {
+        try {
+            double cashGiven = Double.parseDouble(cashField.getText().trim());
+            double totalPrice = Double.parseDouble(totalPriceField.getText().trim());
+
+            if (cashGiven < totalPrice) {
+                showAlert("Insufficient Cash", "The cash provided is less than the total price.");
+            } else {
+                double change = cashGiven - totalPrice;
+                changeField.setText("₱" + String.format("%.2f", change));  // Show the change in the changeField
+                cashField.clear();
+            }
+        } catch (NumberFormatException e) {
+            showAlert("Input Error", "Please enter a valid number in the cash field.");
+        }
+    }
+
     private ObservableList<Product> productList = FXCollections.observableArrayList();
-    private ObservableList<CartItem> cartList = FXCollections.observableArrayList(); // Cart items list
+    private ObservableList<CartItem> cartList = FXCollections.observableArrayList();
     private Database db;
 
     @FXML
@@ -182,9 +209,12 @@ public class HomeController {
     private void updateTotalPrice() {
         double totalPrice = 0;
         for (CartItem item : cartList) {
-            totalPrice += item.getTotalPrice();
+            totalPrice += item.getTotalPrice();  // Sum the total price of all items
         }
-        totalPriceField.setText(String.format("%.2f", totalPrice));
+        totalPriceField.setText(String.format("%.2f", totalPrice));  // Update the total price field with the calculated value
+
+        // Also update the calculator total field
+        calculatorTotalField.setText(String.format("%.2f", totalPrice));  // Show total price in calculator
     }
 
     // Show alert messages
@@ -220,5 +250,35 @@ public class HomeController {
             selectedCartItem.setQuantity(selectedCartItem.getQuantity() - 1);  // Decrease quantity
             updateTotalPrice();  // Update total price
         }
+    }
+
+    // Handle checkout
+    @FXML
+    public void handleCheckout() {
+        // Step 1: Calculate the total price from the cart
+        double totalPrice = 0;
+        for (CartItem cartItem : cartList) {
+            totalPrice += cartItem.getTotalPrice();  // Sum the total price of all items
+        }
+
+        // Step 2: Display the total price
+        totalPriceField.setText(String.format("%.2f", totalPrice));  // Update the total price field
+
+        // Step 3: Optionally, you can save this checkout data to a database or generate a receipt
+        // For example, you can insert the checkout details into a transactions table
+
+        // Step 4: Clear the cart after checkout
+        cartList.clear();  // Clear the cart list
+        cartTableView.setItems(cartList);  // Update the cart table view with the cleared cart
+
+        // Optionally: Show a confirmation message
+        showAlert("Checkout Complete", "Your checkout was successful. Thank you for your purchase!");
+
+        // Step 5: Reset any fields
+        totalPriceField.clear();  // Clear total price field
+        calculatorTotalField.clear();  // Clear the calculator total price field
+        resultProductName.clear();  // Clear search bar
+        resultProductPrice.clear();  // Clear product details
+        resultProductQuantity.clear();  // Clear quantity field
     }
 }
