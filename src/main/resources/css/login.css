@@ -1,14 +1,65 @@
+/* src/main/resources/css/login.css /
+
+/ Import a custom font /
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
 
-
-.root{
-	-fx-font-family: 'Roboto', san-serif;
+/ Apply the custom font to the entire form /
+.root {
+    -fx-font-family: 'Roboto', sans-serif;
 }
 
-.text-field{
-	-fx-background-color: #4682B4;
-	-fx-border-color: #4682B4;
-	-fx-border-radius: 5px;
-	-fx-padding: 10px;
-	-fx-font-size: 14px;
+/ Generic styles for text fields /
+.text-field {
+    -fx-background-color: #f0f0f0;
+    -fx-border-color: #dcdcdc;
+    -fx-border-radius: 5px;
+    -fx-padding: 10px;
+    -fx-font-size: 14px;
+}
+
+.text-field:focused {
+    -fx-border-color: #4a90e2;
+    -fx-background-color: #ffffff;
+}
+
+/ Specific styles for error messages in text fields /
+.text-field.error {
+    -fx-text-fill: red;
+    -fx-border-color: red;
+    -fx-background-color: #ffe6e6;
+}
+
+/ Generic styles for buttons /
+.button {
+    -fx-background-color: #4a90e2;
+    -fx-text-fill: #ffffff;
+    -fx-border-radius: 5px;
+    -fx-padding: 10px 20px;
+    -fx-font-size: 14px;
+    -fx-cursor: hand;
+}
+
+.button:hover {
+    -fx-background-color: #357abd;
+}
+
+.button:pressed {
+    -fx-background-color: #2c5a8a;
+}
+
+/ Specific styles for the login form /
+.login-form {
+    -fx-alignment: center;
+    -fx-spacing: 10px;
+}
+
+.login-form .label {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+}
+
+/ replace lines X to Y */
+#loginMessageLabel {
+    -fx-text-fill: red;
+    -fx-font-size: 14px;
 }

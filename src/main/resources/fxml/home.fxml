@@ -3,45 +3,77 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox alignment="CENTER" spacing="20" style="-fx-padding: 20; -fx-background-color: #ADD8E6;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.jrees.finalrequirements_infoman.controllers.HomeController">
+<VBox alignment="CENTER" spacing="20" style="-fx-padding: 20; -fx-background-color: #FFFAF0;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.jrees.finalrequirements_infoman.controllers.HomeController">
     <!-- Title -->
-    <Label style="-fx-font-size: 24px; -fx-font-weight: bold;" text="Welcome to the SEASIDE COLLECTIVE" />
+    <Label style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #2E8B57;" text="Welcome to the SEASIDE COLLECTIVE" />
 
-    <!-- Seaside Products Section -->
-    <VBox alignment="CENTER" spacing="10" style="-fx-border-width: 2px; -fx-border-color: gray; -fx-padding: 10;">
-        <Label style="-fx-font-size: 18px; -fx-font-weight: bold;" text="Seaside Products" />
+    <!-- HBox for Seaside Products and Cart Section -->
+    <HBox alignment="CENTER_LEFT" spacing="20" style="-fx-padding: 10;">
+        <!-- Seaside Products Section -->
+        <VBox alignment="CENTER" spacing="10" style="-fx-border-width: 2px; -fx-border-color: #4682B4; -fx-padding: 10; -fx-background-color: #ADD8E6;">
+            <Label style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #4682B4;" text="Seaside Products" />
 
-        <TableView fx:id="productTable" prefWidth="600">
-            <columns>
-                <TableColumn fx:id="productIdColumn" prefWidth="100.0" text="Product ID" />
-                <TableColumn fx:id="productNameColumn" prefWidth="322.0" text="Product " />
-                <TableColumn fx:id="productPriceColumn" prefWidth="114.0" text="Price" />
-                <TableColumn fx:id="productQuantityColumn" prefWidth="63.0" text="Stock" />
-            </columns>
-        </TableView>
-        <HBox alignment="CENTER" spacing="10">
-            <Button fx:id="addProductButton" text="Add Product" />
-            <Button fx:id="removeProductButton" text="Remove Product" />
-        </HBox>
-    </VBox>
+            <TableView fx:id="productTable" prefWidth="600" style="-fx-background-color: #FFF8DC;">
+                <columns>
+                    <TableColumn fx:id="productIdColumn" prefWidth="100.0" text="Product ID" />
+                    <TableColumn fx:id="productNameColumn" prefWidth="322.0" text="Product" />
+                    <TableColumn fx:id="productPriceColumn" prefWidth="114.0" text="Price" />
+                    <TableColumn fx:id="productQuantityColumn" prefWidth="63.0" text="Stock" />
+                </columns>
+            </TableView>
+        </VBox>
+
+        <!-- Cart Section -->
+        <VBox spacing="10" style="-fx-padding: 10; -fx-background-color: #ADD8E6;">
+            <Label style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #4682B4;" text="Cart" />
+
+            <!-- Cart Table -->
+            <TableView fx:id="cartTableView" prefHeight="250" prefWidth="350" style="-fx-background-color: #FFF8DC; -fx-border-color: #4682B4;">
+                <columns>
+                    <TableColumn fx:id="cartProductNameColumn" prefWidth="197.0" text="Product" />
+                    <TableColumn fx:id="cartQuantityColumn" prefWidth="73.0" text="Quantity" />
+                    <TableColumn fx:id="cartPriceColumn" prefWidth="77.0" text="Price" />
+                </columns>
+            </TableView>
+
+            <!-- Add Product and Quantity Controls -->
+            <HBox alignment="CENTER" spacing="10">
+                <!-- Minus Button -->
+                <Button fx:id="decreaseQuantityButton" onAction="#handleDecreaseQuantity" style="-fx-background-color: #FFD700; -fx-text-fill: #000000;" text="-" />
+                <!-- Plus Button -->
+                <Button fx:id="increaseQuantityButton" onAction="#handleIncreaseQuantity" style="-fx-background-color: #FFD700; -fx-text-fill: #000000;" text="+" />
+                <!-- Add to Cart Button -->
+                <Button fx:id="addProductButton" onAction="#handleAddProductToCart" style="-fx-background-color: #FFD700; -fx-text-fill: #000000;" text="Add Product to Cart" />
+            </HBox>
+
+            <!-- Remove Product Button -->
+            <HBox alignment="CENTER" spacing="10">
+                <Button fx:id="removeProductButton" onAction="#handleRemoveFromCart" style="-fx-background-color: #FF6347; -fx-text-fill: #FFFFFF;" text="Remove Product from Cart" />
+            </HBox>
+
+            <!-- Total Price Display -->
+            <HBox alignment="CENTER" spacing="10">
+                <Label style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Total Price: " />
+                <TextField fx:id="totalPriceField" editable="false" prefHeight="25" prefWidth="100" style="-fx-background-color: #F0E68C;" />
+            </HBox>
+        </VBox>
+    </HBox>
 
     <!-- Search Result Section -->
-    <VBox alignment="CENTER" spacing="10" style="-fx-border-width: 2px; -fx-border-color: gray; -fx-padding: 10;">
-        <Label style="-fx-font-size: 18px; -fx-font-weight: bold;" text="Search Result" />
+    <VBox alignment="CENTER" spacing="10" style="-fx-border-width: 2px; -fx-border-color: #4682B4; -fx-padding: 10; -fx-background-color: #FFF8DC;">
+        <Label style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #4682B4;" text="Search Result" />
         <HBox spacing="10">
             <Label text="Product Name:" />
-            <TextField fx:id="resultProductName" editable="true" />
-            <Button fx:id="searchButton" text="Search" onAction="#handleSearch" />
+            <TextField fx:id="resultProductName" editable="true" prefHeight="25.0" prefWidth="102.0" style="-fx-background-color: #F0E68C;" />
+            <Button fx:id="searchButton" onAction="#handleSearch" style="-fx-background-color: #4682B4; -fx-text-fill: white;" text="Search" />
         </HBox>
         <HBox spacing="10">
             <Label text="Price:" />
-            <TextField fx:id="resultProductPrice" editable="false" />
-            <Label text="Stock:" />
-            <TextField fx:id="resultProductQuantity" editable="false" />
+            <TextField fx:id="resultProductPrice" editable="false" prefHeight="25.0" prefWidth="154.0" style="-fx-background-color: #F0E68C;" />
         </HBox>
         <HBox spacing="10">
-            <Label text="Total Price:" />
-            <TextField fx:id="resultTotalPrice" editable="false" />
+            <Label text="Stock:" />
+            <TextField fx:id="resultProductQuantity" editable="false" prefHeight="25.0" prefWidth="31.0" style="-fx-background-color: #F0E68C;" />
         </HBox>
     </VBox>
 </VBox>

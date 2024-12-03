@@ -26,7 +26,7 @@ public class Main extends Application {
 
         // Load FXML
         FXMLLoader fxmlLoader = new FXMLLoader(Main.class.getResource("/fxml/login.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 420, 350);
+        Scene scene = new Scene(fxmlLoader.load(), 390, 390);
         stage.setTitle("SEASIDE LOGIN");
         stage.setScene(scene);
         stage.show();

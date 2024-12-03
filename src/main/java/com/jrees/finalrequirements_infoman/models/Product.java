@@ -15,6 +15,7 @@ public class Product {
         this.quantity = new SimpleIntegerProperty(quantity);
     }
 
+    // Property Getters
     public IntegerProperty getProductIdProperty() {
         return productId;
     }
@@ -31,6 +32,7 @@ public class Product {
         return quantity;
     }
 
+    // Regular Getters
     public int getProductId() {
         return productId.get();
     }
@@ -47,6 +49,7 @@ public class Product {
         return quantity.get();
     }
 
+    // Regular Setters
     public void setProductId(int productId) {
         this.productId.set(productId);
     }
@@ -61,5 +64,26 @@ public class Product {
 
     public void setQuantity(int quantity) {
         this.quantity.set(quantity);
+    }
+
+    // Method to decrease stock when added to cart
+    public void decreaseQuantity(int quantityToDecrease) {
+        int newQuantity = this.quantity.get() - quantityToDecrease;
+        if (newQuantity >= 0) {
+            this.quantity.set(newQuantity);
+        } else {
+            throw new IllegalArgumentException("Not enough stock available.");
+        }
+    }
+
+    // Method to increase stock when removing from cart
+    public void increaseQuantity(int quantityToIncrease) {
+        int newQuantity = this.quantity.get() + quantityToIncrease;
+        this.quantity.set(newQuantity);
+    }
+
+    @Override
+    public String toString() {
+        return "Product ID: " + getProductId() + ", Name: " + getName() + ", Price: " + getPrice() + ", Quantity: " + getQuantity();
     }
 }
