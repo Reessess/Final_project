@@ -36,7 +36,7 @@ public class Product {
     }
 
     public String getName() {
-        return name.get();
+        return name.get();  // This method returns the product name
     }
 
     public double getPrice() {

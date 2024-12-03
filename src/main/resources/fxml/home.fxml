@@ -3,26 +3,20 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox alignment="TOP_CENTER" spacing="20" style="-fx-padding: 20; -fx-background-color: #ADD8E6;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.jrees.finalrequirements_infoman.controllers.HomeController">
+<VBox alignment="CENTER" spacing="20" style="-fx-padding: 20; -fx-background-color: #ADD8E6;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.jrees.finalrequirements_infoman.controllers.HomeController">
     <!-- Title -->
     <Label style="-fx-font-size: 24px; -fx-font-weight: bold;" text="Welcome to the SEASIDE COLLECTIVE" />
 
-    <!-- Products Section -->
-    <VBox spacing="10" style="-fx-border-width: 2px; -fx-border-color: gray; -fx-padding: 10;">
-        <Label style="-fx-font-size: 18px; -fx-font-weight: bold;" text="Products" />
-
-        <!-- Search Section -->
-        <HBox alignment="CENTER" spacing="10">
-            <TextField fx:id="searchField" promptText="Search Products" />
-            <Button fx:id="searchButton" text="Search" />
-        </HBox>
+    <!-- Seaside Products Section -->
+    <VBox alignment="CENTER" spacing="10" style="-fx-border-width: 2px; -fx-border-color: gray; -fx-padding: 10;">
+        <Label style="-fx-font-size: 18px; -fx-font-weight: bold;" text="Seaside Products" />
 
         <TableView fx:id="productTable" prefWidth="600">
             <columns>
                 <TableColumn fx:id="productIdColumn" prefWidth="100.0" text="Product ID" />
-                <TableColumn fx:id="productNameColumn" prefWidth="322.0" text="Product" />
+                <TableColumn fx:id="productNameColumn" prefWidth="322.0" text="Product " />
                 <TableColumn fx:id="productPriceColumn" prefWidth="114.0" text="Price" />
-                <TableColumn fx:id="productQuantityColumn" prefWidth="63.0" text="Quantity" />
+                <TableColumn fx:id="productQuantityColumn" prefWidth="63.0" text="Stock" />
             </columns>
         </TableView>
         <HBox alignment="CENTER" spacing="10">
@@ -31,33 +25,23 @@
         </HBox>
     </VBox>
 
-    <!-- Calculator Section -->
-    <VBox spacing="10" style="-fx-border-width: 2px; -fx-border-color: gray; -fx-padding: 10;">
-        <Label style="-fx-font-size: 18px; -fx-font-weight: bold;" text="Calculator" />
-        <TextField fx:id="calculatorDisplay" editable="false" style="-fx-font-size: 18px; -fx-alignment: center-right;" />
-        <GridPane hgap="10" style="-fx-alignment: center;" vgap="10">
-            <Button fx:id="button7" text="7" />
-            <Button fx:id="button8" text="8" />
-            <Button fx:id="button9" text="9" />
-            <Button fx:id="buttonDivide" text="/" />
-            <Button fx:id="button4" text="4" />
-            <Button fx:id="button5" text="5" />
-            <Button fx:id="button6" text="6" />
-            <Button fx:id="buttonMultiply" text="*" />
-            <Button fx:id="button1" text="1" />
-            <Button fx:id="button2" text="2" />
-            <Button fx:id="button3" text="3" />
-            <Button fx:id="buttonSubtract" text="-" />
-            <Button fx:id="button0" text="0" />
-            <Button fx:id="buttonClear" text="C" />
-            <Button fx:id="buttonEquals" text="=" />
-            <Button fx:id="buttonAdd" text="+" />
-         <columnConstraints>
-            <ColumnConstraints />
-         </columnConstraints>
-         <rowConstraints>
-            <RowConstraints />
-         </rowConstraints>
-        </GridPane>
+    <!-- Search Result Section -->
+    <VBox alignment="CENTER" spacing="10" style="-fx-border-width: 2px; -fx-border-color: gray; -fx-padding: 10;">
+        <Label style="-fx-font-size: 18px; -fx-font-weight: bold;" text="Search Result" />
+        <HBox spacing="10">
+            <Label text="Product Name:" />
+            <TextField fx:id="resultProductName" editable="true" />
+            <Button fx:id="searchButton" text="Search" onAction="#handleSearch" />
+        </HBox>
+        <HBox spacing="10">
+            <Label text="Price:" />
+            <TextField fx:id="resultProductPrice" editable="false" />
+            <Label text="Stock:" />
+            <TextField fx:id="resultProductQuantity" editable="false" />
+        </HBox>
+        <HBox spacing="10">
+            <Label text="Total Price:" />
+            <TextField fx:id="resultTotalPrice" editable="false" />
+        </HBox>
     </VBox>
 </VBox>

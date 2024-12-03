@@ -4,7 +4,6 @@ import com.jrees.finalrequirements_infoman.models.Product;
 import com.jrees.finalrequirements_infoman.utility.Database;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.input.MouseEvent;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -28,12 +27,19 @@ public class HomeController {
     private TableColumn<Product, Integer> productQuantityColumn;
 
     @FXML
-    private TextField calculatorDisplay;
+    private TextField resultProductName;
 
     @FXML
-    private Button button0, button1, button2, button3, button4, button5, button6, button7, button8, button9;
+    private TextField resultProductQuantity;  // Changed to Stock
+
     @FXML
-    private Button buttonAdd, buttonSubtract, buttonMultiply, buttonDivide, buttonClear, buttonEquals;
+    private TextField resultProductPrice;
+
+    @FXML
+    private TextField resultTotalPrice;
+
+    @FXML
+    private Button addProductButton, removeProductButton, searchButton;
 
     private ObservableList<Product> productList = FXCollections.observableArrayList();
     private Database db;
@@ -54,14 +60,11 @@ public class HomeController {
 
         // Set the data to the table
         productTable.setItems(productList);
-
-        // Initialize the calculator's display
-        calculatorDisplay.setText("");
     }
 
     // Method to load products from the database
     private void loadProductsFromDatabase() {
-        String query = "SELECT * FROM products"; // Assuming 'products' is the table name
+        String query = "SELECT product_id, product_name, price, quantity FROM products";
 
         try (Connection connection = db.getConnection();
              Statement stmt = connection.createStatement();
@@ -69,7 +72,7 @@ public class HomeController {
 
             while (rs.next()) {
                 int productId = rs.getInt("product_id");
-                String productName = rs.getString("name");
+                String productName = rs.getString("product_name");
                 double productPrice = rs.getDouble("price");
                 int productQuantity = rs.getInt("quantity");
 
@@ -82,53 +85,73 @@ public class HomeController {
         }
     }
 
-    // Calculator button actions
+    // Method to handle product selection from the table
     @FXML
-    public void handleButtonClick(MouseEvent event) {
-        Button clickedButton = (Button) event.getSource();
-        String buttonText = clickedButton.getText();
+    public void handleProductSelection() {
+        Product selectedProduct = productTable.getSelectionModel().getSelectedItem();
 
-        if (buttonText.equals("C")) {
-            calculatorDisplay.clear(); // Clear display
-        } else if (buttonText.equals("=")) {
-            // Evaluate the expression in the display (implement evaluation logic)
-            try {
-                String result = evaluateExpression(calculatorDisplay.getText());
-                calculatorDisplay.setText(result);
-            } catch (Exception e) {
-                calculatorDisplay.setText("Error");
-            }
-        } else {
-            // Append the clicked button text to the display
-            calculatorDisplay.appendText(buttonText);
+        if (selectedProduct != null) {
+            resultProductName.setText(selectedProduct.getName());  // Using getName instead of getProductName
+            resultProductPrice.setText(String.format("%.2f", selectedProduct.getPrice()));
+            resultProductQuantity.setText(String.valueOf(selectedProduct.getQuantity()));  // Changed to show stock
+            resultTotalPrice.clear();  // Clear total price when a new product is selected
         }
     }
 
-    // Sample method for simple expression evaluation (implement as needed)
-    private String evaluateExpression(String expression) {
-        try {
-            double result = eval(expression);
-            return String.valueOf(result);
-        } catch (Exception e) {
-            return "Error";
-        }
-    }
+    // Method to handle search functionality
+    @FXML
+    public void handleSearch() {
+        String searchQuery = resultProductName.getText().trim();
 
-    // Simple expression evaluator (you can use Java's script engine or another method here)
-    private double eval(String expression) {
-        try {
-            return new Object() {
-                public double evaluate(String expression) {
-                    return Double.parseDouble(expression);
+        if (!searchQuery.isEmpty()) {
+            for (Product product : productList) {
+                if (product.getName().equalsIgnoreCase(searchQuery)) {
+                    resultProductPrice.setText(String.format("%.2f", product.getPrice()));
+                    resultProductQuantity.setText(String.valueOf(product.getQuantity()));  // Changed to stock
+                    resultTotalPrice.clear();  // Clear total price when searching
+                    return;
                 }
-            }.evaluate(expression);
-        } catch (Exception e) {
-            return 0.0;
+            }
+            // If no match is found, clear the fields
+            resultProductPrice.clear();
+            resultProductQuantity.clear();  // Changed to stock
+            resultTotalPrice.clear();
+            showAlert("Product Not Found", "No product found with the name: " + searchQuery);
+        } else {
+            showAlert("Empty Search", "Please enter a product name to search.");
+        }
+    }
+
+    // Show an alert if the product is not found
+    private void showAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    // Method to calculate total price based on stock input (quantity remains valid in the backend)
+    @FXML
+    public void handleQuantityChange() {
+        try {
+            int stock = Integer.parseInt(resultProductQuantity.getText());  // Changed to stock
+            Product selectedProduct = productTable.getSelectionModel().getSelectedItem();
+
+            if (selectedProduct != null && stock > 0) {
+                double price = selectedProduct.getPrice();
+                double totalPrice = price * stock;
+                resultTotalPrice.setText(String.format("%.2f", totalPrice));  // Display total price
+            } else {
+                resultTotalPrice.clear();  // Clear if invalid stock
+            }
+        } catch (NumberFormatException e) {
+            resultTotalPrice.clear();  // Clear if invalid input
         }
     }
 
     @FXML
     public void close() {
-        db.closeConnection(); // Close the database connection when the user exits the screen
+        db.closeConnection();  // Close the database connection when the user exits the screen
     }
 }
