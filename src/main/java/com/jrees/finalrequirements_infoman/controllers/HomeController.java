@@ -51,6 +51,24 @@ public class HomeController {
     private TextField productStockField;
     @FXML
     private  TextField productPriceField;
+    @FXML
+    private TextField customerNameField;
+    @FXML
+    private TextField customerPhoneField;
+    @FXML
+    private TextField customerEmailField;
+
+    public String getCustomerName() {
+        return customerNameField.getText();
+    }
+
+    public String getCustomerPhone() {
+        return customerPhoneField.getText();
+    }
+
+    public String getCustomerEmail() {
+        return customerEmailField.getText();
+    }
 
     private ObservableList<Product> productList = FXCollections.observableArrayList();
     private ObservableList<CartItem> cartList = FXCollections.observableArrayList();
@@ -233,7 +251,7 @@ public class HomeController {
                     existingItem.setQuantity(existingItem.getQuantity() + 1);
 
                     // Decrease local stock of the product (correct the logic here)
-                    selectedProduct.decreaseQuantity(1); // Decrease stock locally by 1
+                    selectedProduct.decreaseQuantity(-1); // Decrease stock locally by 1
 
                     // Deduct 1 stock from the database
                     Database db = new Database();
@@ -262,9 +280,6 @@ public class HomeController {
         }
     }
 
-
-
-
     // Remove product from cart
     @FXML
     public void handleRemoveFromCart() {
@@ -291,7 +306,7 @@ public class HomeController {
                 selectedCartItem.setQuantity(selectedCartItem.getQuantity() + 1);
 
                 // Decrease the local stock by 1
-                product.decreaseQuantity(1);
+                product.decreaseQuantity(-1);
 
                 // Update the database stock (Deduct 1 from DB)
                 Database db = new Database();
@@ -325,8 +340,8 @@ public class HomeController {
             // Decrease the quantity in the cart
             selectedCartItem.setQuantity(selectedCartItem.getQuantity() - 1);
 
-            // Increase the local stock by 1
-            product.increaseQuantity(1);
+            // decrease the local stock by 1
+            product.decreaseQuantity(1);
 
             // Update the database stock (Add 1 back to DB)
             Database db = new Database();
@@ -348,10 +363,6 @@ public class HomeController {
             showAlert("No Cart Item Selected", "Please select a cart item to decrease quantity.");
         }
     }
-
-
-
-
     // Real-time product search
     @FXML
     public void handleSearch() {
@@ -562,3 +573,4 @@ public class HomeController {
         alert.showAndWait();
     }
 }
+
