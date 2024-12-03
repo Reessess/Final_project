@@ -9,9 +9,10 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 import org.mindrot.jbcrypt.BCrypt;
-
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -25,6 +26,15 @@ public class LoginController {
 
     @FXML
     private TextField username;
+
+    @FXML
+    private ImageView myImageView;  // Declare the ImageView to display the image
+
+    @FXML
+    public void initialize(){
+        Image image = new Image(getClass().getResource("/image/seaside.jpg").toExternalForm());
+        myImageView.setImage(image);  // Set image on ImageView
+    }
 
     @FXML
     void handleLogin(ActionEvent event) {

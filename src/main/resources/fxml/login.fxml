@@ -5,13 +5,20 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="660.0" xmlns="http://javafx.com/javafx/" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.jrees.finalrequirements_infoman.controllers.LoginController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="394.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.jrees.finalrequirements_infoman.controllers.LoginController">
    <children>
-      <VBox layoutX="1.0" layoutY="2.0" prefHeight="185.0" prefWidth="216.0" spacing="15.0">
+      <ImageView fx:id="myImageView" fitHeight="400.0" fitWidth="394.0" layoutY="1.0">
+         <image>
+            <Image url="@../../../../../../Downloads/seaside.jpg" />
+         </image>
+      </ImageView>
+      <VBox alignment="BOTTOM_LEFT" prefHeight="185.0" prefWidth="216.0" spacing="15.0">
          <children>
             <Label prefHeight="31.0" prefWidth="183.0" text="SEASIDE LOGIN">
                <font>
@@ -26,12 +33,12 @@
                   <Insets left="10.0" />
                </VBox.margin>
             </TextField>
-            <PasswordField fx:id="password" promptText="password">
+            <PasswordField fx:id="password" alignment="TOP_LEFT" promptText="password">
                <VBox.margin>
                   <Insets left="10.0" />
                </VBox.margin>
             </PasswordField>
-            <Button mnemonicParsing="false" onAction="#handleLogin" text="Login">
+            <Button defaultButton="true" mnemonicParsing="false" onAction="#handleLogin" text="Login">
                <VBox.margin>
                   <Insets left="10.0" />
                </VBox.margin>
@@ -41,26 +48,5 @@
             <Insets right="50.0" top="10.0" />
          </padding>
       </VBox>
-      <VBox layoutX="326.0" layoutY="2.0" prefHeight="322.0" prefWidth="320.0" />
-      <Label layoutX="14.0" layoutY="187.0" prefHeight="32.0" prefWidth="155.0" text="WELCOME">
-         <font>
-            <Font size="25.0" />
-         </font>
-      </Label>
-      <Label layoutX="119.0" layoutY="223.0" prefHeight="36.0" prefWidth="35.0" text="TO">
-         <font>
-            <Font name="Tahoma" size="25.0" />
-         </font>
-      </Label>
-      <Label layoutX="136.0" layoutY="259.0" prefHeight="36.0" prefWidth="102.0" text="SEASIDE">
-         <font>
-            <Font size="25.0" />
-         </font>
-      </Label>
-      <Label layoutX="187.0" layoutY="295.0" prefHeight="32.0" prefWidth="155.0" text="COLLECTIVE">
-         <font>
-            <Font size="25.0" />
-         </font>
-      </Label>
    </children>
 </AnchorPane>
