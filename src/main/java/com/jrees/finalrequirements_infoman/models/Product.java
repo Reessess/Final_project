@@ -38,7 +38,7 @@ public class Product {
     }
 
     public String getName() {
-        return name.get();  // This method returns the product name
+        return name.get();
     }
 
     public double getPrice() {
@@ -68,9 +68,9 @@ public class Product {
 
     // Method to decrease stock when added to cart
     public void decreaseQuantity(int quantityToDecrease) {
-        int newQuantity = this.quantity.get() - quantityToDecrease;
-        if (newQuantity >= 0) {
-            this.quantity.set(newQuantity);
+        int currentQuantity = this.quantity.get();
+        if (quantityToDecrease <= currentQuantity) {
+            this.quantity.set(currentQuantity - quantityToDecrease);
         } else {
             throw new IllegalArgumentException("Not enough stock available.");
         }
@@ -78,12 +78,18 @@ public class Product {
 
     // Method to increase stock when removing from cart
     public void increaseQuantity(int quantityToIncrease) {
-        int newQuantity = this.quantity.get() + quantityToIncrease;
-        this.quantity.set(newQuantity);
+        int currentQuantity = this.quantity.get();
+        this.quantity.set(currentQuantity + quantityToIncrease);
+    }
+
+    // Method to check if a product's name matches a search query (case-insensitive)
+    public boolean matchesSearchQuery(String query) {
+        return name.get().toLowerCase().contains(query.toLowerCase());
     }
 
     @Override
     public String toString() {
-        return "Product ID: " + getProductId() + ", Name: " + getName() + ", Price: " + getPrice() + ", Quantity: " + getQuantity();
+        return String.format("Product ID: %d, Name: %s, Price: %.2f, Quantity: %d",
+                getProductId(), getName(), getPrice(), getQuantity());
     }
 }

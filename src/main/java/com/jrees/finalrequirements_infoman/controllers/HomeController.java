@@ -5,6 +5,7 @@ import com.jrees.finalrequirements_infoman.models.Product;
 import com.jrees.finalrequirements_infoman.utility.Database;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
@@ -63,11 +64,13 @@ public class HomeController {
     public void initialize() {
         db = new Database();
 
+        // Set up columns for products table
         productIdColumn.setCellValueFactory(cellData -> cellData.getValue().getProductIdProperty().asObject());
         productNameColumn.setCellValueFactory(cellData -> cellData.getValue().getNameProperty());
         productPriceColumn.setCellValueFactory(cellData -> cellData.getValue().getPriceProperty().asObject());
         productQuantityColumn.setCellValueFactory(cellData -> cellData.getValue().getQuantityProperty().asObject());
 
+        // Set up columns for cart table
         cartProductNameColumn.setCellValueFactory(cellData -> cellData.getValue().getProduct().getNameProperty());
         cartQuantityColumn.setCellValueFactory(cellData -> cellData.getValue().getQuantityProperty().asObject());
         cartPriceColumn.setCellValueFactory(cellData -> cellData.getValue().getTotalPriceProperty().asObject());
@@ -77,8 +80,12 @@ public class HomeController {
 
         // Set cartList to the TableView
         cartTableView.setItems(cartList);
+
+        // Add listener to resultProductName for real-time search updates
+        resultProductName.textProperty().addListener((observable, oldValue, newValue) -> handleSearch());
     }
 
+    // Load products from the database
     private void loadProductsFromDatabase() {
         String query = "SELECT product_id, product_name, price, stock FROM products";
 
@@ -95,11 +102,12 @@ public class HomeController {
                 productList.add(new Product(productId, productName, productPrice, productQuantity));
             }
         } catch (SQLException e) {
-            System.err.println("Error loading products from database.");
+            showAlert("Database Error", "Error loading products from the database.");
             e.printStackTrace();
         }
     }
 
+    // Add product to cart
     @FXML
     public void handleAddProductToCart() {
         Product selectedProduct = productTable.getSelectionModel().getSelectedItem();
@@ -123,6 +131,7 @@ public class HomeController {
         }
     }
 
+    // Remove product from cart
     @FXML
     public void handleRemoveFromCart() {
         CartItem selectedCartItem = cartTableView.getSelectionModel().getSelectedItem();
@@ -135,29 +144,41 @@ public class HomeController {
         }
     }
 
+    // Real-time search handler
     @FXML
     public void handleSearch() {
-        String searchQuery = resultProductName.getText().trim();
+        String searchQuery = resultProductName.getText().trim().toLowerCase(); // Case-insensitive search
 
         if (!searchQuery.isEmpty()) {
+            ObservableList<Product> searchResults = FXCollections.observableArrayList();
+
+            // Search through all products and add those that match the search query
             for (Product product : productList) {
-                if (product.getName().equalsIgnoreCase(searchQuery)) {
-                    resultProductPrice.setText(String.format("%.2f", product.getPrice()));
-                    resultProductQuantity.setText(String.valueOf(product.getQuantity()));
-                    totalPriceField.clear();  // Clear the total price field when searching
-                    return;
+                if (product.getName().toLowerCase().contains(searchQuery)) {
+                    searchResults.add(product);
                 }
             }
 
+            // If search results are found, update the table view with filtered products
+            if (!searchResults.isEmpty()) {
+                productTable.setItems(searchResults);  // Update the table view with search results
+                resultProductPrice.setText(String.format("%.2f", searchResults.get(0).getPrice()));
+                resultProductQuantity.setText(String.valueOf(searchResults.get(0).getQuantity()));
+                totalPriceField.clear();  // Clear total price when searching
+            } else {
+                showAlert("Product Not Found", "No products found matching the search query.");
+                productTable.setItems(FXCollections.observableArrayList()); // Clear table if no match
+            }
+        } else {
+            // If search query is empty, reset to show all products
+            productTable.setItems(productList);  // Reset table to show all products
             resultProductPrice.clear();
             resultProductQuantity.clear();
             totalPriceField.clear();
-            showAlert("Product Not Found", "No product found with the name: " + searchQuery);
-        } else {
-            showAlert("Empty Search", "Please enter a product name to search.");
         }
     }
 
+    // Update the total price field based on cart items
     private void updateTotalPrice() {
         double totalPrice = 0;
         for (CartItem item : cartList) {
@@ -166,6 +187,7 @@ public class HomeController {
         totalPriceField.setText(String.format("%.2f", totalPrice));
     }
 
+    // Show alert messages
     private void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
@@ -174,14 +196,15 @@ public class HomeController {
         alert.showAndWait();
     }
 
+    // Close database connection
     @FXML
     public void close() {
         db.closeConnection();
     }
 
-    // Increase Quantity
+    // Increase quantity in cart
     @FXML
-    public void handleIncreaseQuantity(MouseEvent event) {
+    public void handleIncreaseQuantity(ActionEvent event) {
         CartItem selectedCartItem = cartTableView.getSelectionModel().getSelectedItem();
         if (selectedCartItem != null) {
             selectedCartItem.setQuantity(selectedCartItem.getQuantity() + 1);  // Increase quantity
@@ -189,9 +212,9 @@ public class HomeController {
         }
     }
 
-    // Decrease Quantity
+    // Decrease quantity in cart
     @FXML
-    public void handleDecreaseQuantity(MouseEvent event) {
+    public void handleDecreaseQuantity(ActionEvent event) {
         CartItem selectedCartItem = cartTableView.getSelectionModel().getSelectedItem();
         if (selectedCartItem != null && selectedCartItem.getQuantity() > 1) {
             selectedCartItem.setQuantity(selectedCartItem.getQuantity() - 1);  // Decrease quantity
