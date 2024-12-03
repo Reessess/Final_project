@@ -1,10 +1,10 @@
 Receipt
 
-sdasd x5 - ₱106060.0
-asss x2 - ₱44.0
+ewe x11 - ₱35552.0
+2323 x5 - ₱60605.0
 
-Total: ₱106104.0
-Cash Given: ₱2.1212121212E10
-Change: ₱2.1212015108E10
+Total: ₱96157.0
+Cash Given: ₱2.12121212121212E14
+Change: ₱2.12121212025055E14
 
 Thank you for shopping with us!
