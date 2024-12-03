@@ -84,8 +84,8 @@ public class Database {
     }
 
     // Method to update the stock of a product
-    public void updateProductStock(int productId, int quantity) {
-        // Check current stock for debugging purposes
+    public boolean updateProductStock(int productId, int quantityToDeduct) {
+        // Check current stock in the database before updating
         String checkStockQuery = "SELECT stock FROM products WHERE product_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(checkStockQuery)) {
             stmt.setInt(1, productId);
@@ -93,35 +93,41 @@ public class Database {
             if (rs.next()) {
                 int currentStock = rs.getInt("stock");
                 System.out.println("Current stock for product ID " + productId + ": " + currentStock);
-                if (currentStock < quantity) {
+
+                // Check if there's enough stock to deduct
+                if (currentStock < quantityToDeduct) {
                     System.err.println("Not enough stock for product ID " + productId);
-                    return;
+                    return false;  // Not enough stock to deduct
                 }
             } else {
                 System.err.println("Product ID " + productId + " not found.");
-                return;
+                return false;  // Product not found in database
             }
         } catch (SQLException e) {
             System.err.println("Error checking stock for product ID: " + productId);
             e.printStackTrace();
+            return false;
         }
 
+        // Deduct the stock from the database
         String updateStockQuery = "UPDATE products SET stock = stock - ? WHERE product_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(updateStockQuery)) {
-            stmt.setInt(1, quantity);
+            stmt.setInt(1, quantityToDeduct);
             stmt.setInt(2, productId);
             int rowsAffected = stmt.executeUpdate();
             if (rowsAffected > 0) {
-                System.out.println("Stock updated for product ID: " + productId);
+                System.out.println("Stock updated for product ID: " + productId);  // Stock deducted
+                return true;  // Stock successfully deducted
             } else {
                 System.err.println("Failed to update stock for product ID: " + productId);
+                return false;  // Failed to deduct stock from database
             }
         } catch (SQLException e) {
             System.err.println("Error updating stock for product ID: " + productId);
             e.printStackTrace();
+            return false;
         }
     }
-
     // Method to record a sale in the sales table
     public void recordSale(int productId, int quantity, double totalPrice) {
         String insertSaleQuery = "INSERT INTO sales (product_id, quantity, total_price, sale_date) VALUES (?, ?, ?, NOW())";

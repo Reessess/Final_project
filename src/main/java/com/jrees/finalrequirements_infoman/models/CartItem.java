@@ -36,30 +36,9 @@ public class CartItem {
     public void setQuantity(int quantity) {
         this.quantity.set(quantity);
     }
-
-    // Method to increase quantity of this cart item
-    public void increaseQuantity(int amount) {
-        setQuantity(getQuantity() + amount);
-    }
-
-    // Method to decrease quantity of this cart item
-    public boolean decreaseQuantity(int amount) {
-        int currentQuantity = getQuantity();
-        if (currentQuantity - amount >= 0) {
-            setQuantity(currentQuantity - amount);
-            return true;
-        }
-        return false; // Return false if trying to decrease below zero
-    }
-
     // Total price for this cart item (price * quantity)
     public double getTotalPrice() {
         return product.getPrice() * getQuantity();
-    }
-
-    // Property methods for TableView binding
-    public IntegerProperty getCartItemIdProperty() {
-        return cartItemId;
     }
 
     public IntegerProperty getQuantityProperty() {

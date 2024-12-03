@@ -67,23 +67,35 @@ public class Product {
         this.quantity.set(quantity);
     }
 
-    // Method to update stock quantity (handles both increase and decrease)
-    public boolean updateQuantity(int quantityToUpdate) {
-        int currentQuantity = this.quantity.get();
-        int newQuantity = currentQuantity + quantityToUpdate;
+    // Method to update stock quantity in memory and in the database
+    public boolean updateQuantity(int quantityToAddToCart) {
+        // Get the current stock
+        int currentStock = this.quantity.get();
 
-        if (newQuantity < 0) {
-            System.out.println("Insufficient stock.");
-            return false;  // Not enough stock
+        // Check if there is enough stock to add to the cart
+        if (currentStock <= 0 || currentStock < quantityToAddToCart) {
+            System.out.println("Insufficient stock for Product ID: " + productId.get());
+            return false;  // Not enough stock to add to the cart
         }
 
-        this.quantity.set(newQuantity);
+        // Calculate the new stock after deducting from available stock
+        int newStock = currentStock - quantityToAddToCart;
 
-        // Update the stock in the database
+        // Update the local quantity state
+        this.quantity.set(newStock);
+
+        // Initialize Database and update the stock in the database (deducting stock)
         Database db = new Database();
-        db.updateProductStock(this.productId.get(), newQuantity);  // Update stock in DB
+        boolean success = db.updateProductStock(this.productId.get(), quantityToAddToCart);  // Deduct stock from database when adding to cart
         db.closeConnection();
-        return true;  // Success
+
+        if (success) {
+            System.out.println("Stock updated successfully in database for Product ID: " + productId.get());
+        } else {
+            System.out.println("Failed to update stock in database for Product ID: " + productId.get());
+        }
+
+        return success;  // Return success or failure of the database update
     }
 
     // Method to decrease stock when added to cart
@@ -96,33 +108,12 @@ public class Product {
         updateQuantity(quantityToIncrease);
     }
 
-    // Method to get available stock
-    public int getStockAvailable() {
-        return quantity.get();
-    }
-
-    // Method to check if a product's name matches a search query (case-insensitive)
-    public boolean matchesSearchQuery(String query) {
-        return name.get().toLowerCase().contains(query.toLowerCase());
-    }
-
-    // Method to get price as a formatted string
-    public String getFormattedPrice() {
-        return String.format("%.2f", price.get());
-    }
-
-    // Method to get the product's details formatted for the receipt
-    public String getReceiptLine(int quantity) {
-        return String.format("%s - Qty: %d - ₱%.2f", name.get(), quantity, price.get() * quantity);
-    }
-
     // String representation of the product
     @Override
     public String toString() {
         return String.format("Product ID: %d, Name: %s, Price: ₱%.2f, Quantity Available: %d",
                 getProductId(), getName(), getPrice(), getQuantity());
     }
-
     // Equality check based on product ID
     @Override
     public boolean equals(Object o) {
