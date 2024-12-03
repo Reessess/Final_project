@@ -1,78 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.Scene?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.PasswordField?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.FlowPane?>
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.paint.Color?>
-<?import javafx.scene.paint.RadialGradient?>
-<?import javafx.scene.paint.Stop?>
-<?import javafx.scene.text.Font?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 
-
-<Scene xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="fxml.Login">
-   <root>
-      <FlowPane>
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="660.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <VBox layoutX="1.0" layoutY="2.0" prefHeight="185.0" prefWidth="216.0" spacing="15.0">
          <children>
-            <AnchorPane prefHeight="400.0" prefWidth="600.0" stylesheets="@../css/login.css">
-               <children>
-                  <VBox prefHeight="159.0" prefWidth="205.0" spacing="10.0" stylesheets="@../css/New%20Text%20Document.txt">
-                     <children>
-                        <Label prefHeight="43.0" prefWidth="90.0" text="Login" textAlignment="CENTER">
-                           <padding>
-                              <Insets left="1.0" />
-                           </padding>
-                           <VBox.margin>
-                              <Insets left="60.0" />
-                           </VBox.margin>
-                           <font>
-                              <Font name="Arial Narrow Bold Italic" size="37.0" />
-                           </font>
-                           <textFill>
-                              <RadialGradient centerX="0.5" centerY="0.5" radius="0.5">
-                                 <stops>
-                                    <Stop>
-                                       <color>
-                                          <Color />
-                                       </color>
-                                    </Stop>
-                                    <Stop offset="1.0">
-                                       <color>
-                                          <Color />
-                                       </color>
-                                    </Stop>
-                                 </stops>
-                              </RadialGradient>
-                           </textFill>
-                        </Label>
-                        <TextField promptText="Username">
-                           <VBox.margin>
-                              <Insets left="15.0" right="15.0" />
-                           </VBox.margin>
-                           <font>
-                              <Font name="Arial Rounded MT Bold" size="12.0" />
-                           </font>
-                        </TextField>
-                        <PasswordField promptText="Password">
-                           <VBox.margin>
-                              <Insets left="15.0" right="15.0" />
-                           </VBox.margin>
-                        </PasswordField>
-                        <Button mnemonicParsing="false" text="Login" textFill="#110210">
-                           <VBox.margin>
-                              <Insets left="15.0" />
-                           </VBox.margin>
-                        </Button>
-                     </children>
-                  </VBox>
-               </children>
-            </AnchorPane>
+            <Label prefHeight="31.0" prefWidth="183.0" text="SEASIDE LOGIN">
+               <font>
+                  <Font name="Tahoma" size="21.0" />
+               </font>
+               <VBox.margin>
+                  <Insets left="10.0" />
+               </VBox.margin>
+            </Label>
+            <TextField promptText="username">
+               <VBox.margin>
+                  <Insets left="10.0" />
+               </VBox.margin>
+            </TextField>
+            <PasswordField promptText="password">
+               <VBox.margin>
+                  <Insets left="10.0" />
+               </VBox.margin>
+            </PasswordField>
+            <Button mnemonicParsing="false" text="Login">
+               <VBox.margin>
+                  <Insets left="10.0" />
+               </VBox.margin>
+            </Button>
          </children>
-      </FlowPane>
-   </root>
-</Scene>
+         <padding>
+            <Insets right="50.0" top="10.0" />
+         </padding>
+      </VBox>
+      <VBox layoutX="384.0" layoutY="2.0" prefHeight="333.0" prefWidth="262.0" />
+      <Label layoutX="14.0" layoutY="187.0" prefHeight="32.0" prefWidth="155.0" text="WELCOME">
+         <font>
+            <Font size="25.0" />
+         </font>
+      </Label>
+      <Label layoutX="119.0" layoutY="223.0" prefHeight="36.0" prefWidth="35.0" text="TO">
+         <font>
+            <Font name="Tahoma" size="25.0" />
+         </font>
+      </Label>
+      <Label layoutX="136.0" layoutY="259.0" prefHeight="36.0" prefWidth="102.0" text="SEASIDE">
+         <font>
+            <Font size="25.0" />
+         </font>
+      </Label>
+      <Label layoutX="187.0" layoutY="295.0" prefHeight="32.0" prefWidth="155.0" text="COLLECTIVE">
+         <font>
+            <Font size="25.0" />
+         </font>
+      </Label>
+   </children>
+</AnchorPane>
