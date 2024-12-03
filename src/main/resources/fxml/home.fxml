@@ -1,59 +1,63 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.TableColumn?>
-<?import javafx.scene.control.TableColumn.CellDataFeatures?>
-<?import javafx.util.Callback?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 
-<VBox xmlns="http://javafx.com/javafx"
-      xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.jrees.finalrequirements_infoman.controllers.HomeController"
-      alignment="TOP_CENTER" spacing="20" style="-fx-padding: 20;">
+<VBox alignment="TOP_CENTER" spacing="20" style="-fx-padding: 20; -fx-background-color: #ADD8E6;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.jrees.finalrequirements_infoman.controllers.HomeController">
     <!-- Title -->
-    <Label text="Welcome to the POS System" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+    <Label style="-fx-font-size: 24px; -fx-font-weight: bold;" text="Welcome to the SEASIDE COLLECTIVE" />
 
     <!-- Products Section -->
     <VBox spacing="10" style="-fx-border-width: 2px; -fx-border-color: gray; -fx-padding: 10;">
-        <Label text="Products" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
-        <TableView fx:id="productTable" prefWidth="300">
+        <Label style="-fx-font-size: 18px; -fx-font-weight: bold;" text="Products" />
+
+        <!-- Search Section -->
+        <HBox alignment="CENTER" spacing="10">
+            <TextField fx:id="searchField" promptText="Search Products" />
+            <Button fx:id="searchButton" text="Search" />
+        </HBox>
+
+        <TableView fx:id="productTable" prefWidth="600">
             <columns>
-                <TableColumn fx:id="productNameColumn" text="Product" prefWidth="150"/>
-                <TableColumn fx:id="productPriceColumn" text="Price" prefWidth="100"/>
+                <TableColumn fx:id="productIdColumn" prefWidth="100.0" text="Product ID" />
+                <TableColumn fx:id="productNameColumn" prefWidth="322.0" text="Product" />
+                <TableColumn fx:id="productPriceColumn" prefWidth="114.0" text="Price" />
+                <TableColumn fx:id="productQuantityColumn" prefWidth="63.0" text="Quantity" />
             </columns>
         </TableView>
-        <HBox spacing="10" alignment="CENTER">
-            <Button text="Add Product" fx:id="addProductButton"/>
-            <Button text="Remove Product" fx:id="removeProductButton"/>
+        <HBox alignment="CENTER" spacing="10">
+            <Button fx:id="addProductButton" text="Add Product" />
+            <Button fx:id="removeProductButton" text="Remove Product" />
         </HBox>
     </VBox>
 
     <!-- Calculator Section -->
     <VBox spacing="10" style="-fx-border-width: 2px; -fx-border-color: gray; -fx-padding: 10;">
-        <Label text="Calculator" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
-        <TextField fx:id="calculatorDisplay" editable="false" style="-fx-font-size: 18px; -fx-alignment: center-right;"/>
-        <GridPane hgap="10" vgap="10" style="-fx-alignment: center;">
-            <Button text="7" fx:id="button7"/>
-            <Button text="8" fx:id="button8"/>
-            <Button text="9" fx:id="button9"/>
-            <Button text="/" fx:id="buttonDivide"/>
-            <Button text="4" fx:id="button4"/>
-            <Button text="5" fx:id="button5"/>
-            <Button text="6" fx:id="button6"/>
-            <Button text="*" fx:id="buttonMultiply"/>
-            <Button text="1" fx:id="button1"/>
-            <Button text="2" fx:id="button2"/>
-            <Button text="3" fx:id="button3"/>
-            <Button text="-" fx:id="buttonSubtract"/>
-            <Button text="0" fx:id="button0"/>
-            <Button text="C" fx:id="buttonClear"/>
-            <Button text="=" fx:id="buttonEquals"/>
-            <Button text="+" fx:id="buttonAdd"/>
+        <Label style="-fx-font-size: 18px; -fx-font-weight: bold;" text="Calculator" />
+        <TextField fx:id="calculatorDisplay" editable="false" style="-fx-font-size: 18px; -fx-alignment: center-right;" />
+        <GridPane hgap="10" style="-fx-alignment: center;" vgap="10">
+            <Button fx:id="button7" text="7" />
+            <Button fx:id="button8" text="8" />
+            <Button fx:id="button9" text="9" />
+            <Button fx:id="buttonDivide" text="/" />
+            <Button fx:id="button4" text="4" />
+            <Button fx:id="button5" text="5" />
+            <Button fx:id="button6" text="6" />
+            <Button fx:id="buttonMultiply" text="*" />
+            <Button fx:id="button1" text="1" />
+            <Button fx:id="button2" text="2" />
+            <Button fx:id="button3" text="3" />
+            <Button fx:id="buttonSubtract" text="-" />
+            <Button fx:id="button0" text="0" />
+            <Button fx:id="buttonClear" text="C" />
+            <Button fx:id="buttonEquals" text="=" />
+            <Button fx:id="buttonAdd" text="+" />
+         <columnConstraints>
+            <ColumnConstraints />
+         </columnConstraints>
+         <rowConstraints>
+            <RowConstraints />
+         </rowConstraints>
         </GridPane>
     </VBox>
 </VBox>

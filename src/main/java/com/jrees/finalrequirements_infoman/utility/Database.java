@@ -1,4 +1,4 @@
-package com.jrees.finalrequirements_infoman.controllers;
+package com.jrees.finalrequirements_infoman.utility;
 
 import com.jrees.finalrequirements_infoman.utility.Config;
 import org.mindrot.jbcrypt.BCrypt;

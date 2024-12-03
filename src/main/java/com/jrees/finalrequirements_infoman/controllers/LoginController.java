@@ -1,5 +1,6 @@
 package com.jrees.finalrequirements_infoman.controllers;
 
+import com.jrees.finalrequirements_infoman.utility.Database;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
