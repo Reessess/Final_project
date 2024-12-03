@@ -103,29 +103,32 @@ public class HomeController {
                 // Check if the product is already in the cart
                 CartItem existingItem = cartList.stream()
                         .filter(item -> item.getProduct().equals(selectedProduct))
-                        .findFirst().orElse(null);
+                        .findFirst()
+                        .orElse(null);
 
-                if (existingItem != null) {
-                    // If the product is already in the cart, increase its quantity in the cart
-                    existingItem.setQuantity(existingItem.getQuantity() + 1);
-
-                    // Decrease local stock of the product and update database
-                    boolean success = selectedProduct.decreaseQuantity(1); // Decrease stock locally and in DB
-                    if (!success) {
-                        showAlert("Database Error", "Failed to update stock in the database.");
-                    }
-
-                } else {
-                    // If the product is not in the cart, create a new cart item
-                    CartItem newItem = new CartItem(selectedProduct, 1);
+                if (existingItem == null) {
+                    // If the product is not already in the cart, create a new cart item
+                    CartItem newItem = new CartItem(selectedProduct, 0);
                     cartList.add(newItem);
 
-                    // Decrease local stock of the product and update database
-                    boolean success = selectedProduct.decreaseQuantity(-1); // Decrease stock locally and in DB
+                    // Decrease local stock of the product (correct the logic here)
+                    selectedProduct.decreaseQuantity(0); // Decrease stock locally
+
+                    // Deduct 1 stock from the database
+                    Database db = new Database();
+                    boolean success = db.updateProductStock(selectedProduct.getProductId(), 0); // Deduct 1 stock from DB
+                    db.closeConnection();
+
                     if (!success) {
                         showAlert("Database Error", "Failed to update stock in the database.");
+                        // Rollback local stock change if DB update fails
+                        selectedProduct.increaseQuantity(1); // Increase stock back if DB update fails
                     }
+                } else {
+                    // If the product already exists in the cart, do nothing (or notify the user)
+                    showAlert("Product Already in Cart", "This product is already in the cart.");
                 }
+
                 // Update the total price of the cart
                 updateTotalPrice();
             } else {
@@ -137,6 +140,8 @@ public class HomeController {
             showAlert("No Product Selected", "Please select a product to add to the cart.");
         }
     }
+
+
 
     // Remove product from cart
     @FXML
@@ -164,7 +169,7 @@ public class HomeController {
                 selectedCartItem.setQuantity(selectedCartItem.getQuantity() + 1);
 
                 // Update the local stock by decreasing the available stock
-                product.decreaseQuantity(1);
+                product.decreaseQuantity(-1);
 
                 updateTotalPrice(); // Update the total price of the cart
             } else {
@@ -188,7 +193,7 @@ public class HomeController {
             selectedCartItem.setQuantity(selectedCartItem.getQuantity() - 1);
 
             // Update the local stock by increasing the available stock
-            product.increaseQuantity(1);
+            product.increaseQuantity(+1);
 
             updateTotalPrice();  // Update the total price of the cart
         } else if (selectedCartItem != null) {
@@ -241,6 +246,9 @@ public class HomeController {
 
             double change = cashGiven - totalPrice;
             changeField.setText(String.format("₱%.2f", change));
+
+            // Process the cart items and update the stock
+
 
             // Generate receipt content
             String receiptContent = generateReceiptContent(totalPrice, cashGiven, change);

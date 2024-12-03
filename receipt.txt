@@ -1,11 +1,11 @@
 Receipt
 
-Product 3 x1 - ₱200.0
-Product 2 x1 - ₱150.0
-Product 1 x1 - ₱100.0
+Product 2 x12 - ₱1800.0
+Product 3 x15 - ₱3000.0
+Product 1 x0 - ₱0.0
 
-Total: ₱450.0
-Cash Given: ₱500.0
-Change: ₱50.0
+Total: ₱4800.0
+Cash Given: ₱2121212.0
+Change: ₱2116412.0
 
 Thank you for shopping with us!

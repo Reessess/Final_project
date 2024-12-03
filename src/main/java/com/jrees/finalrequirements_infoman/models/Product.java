@@ -15,20 +15,16 @@ public class Product {
         this.price = new SimpleDoubleProperty(price);
         this.quantity = new SimpleIntegerProperty(quantity);
     }
-
     // Property Getters
     public IntegerProperty getProductIdProperty() {
         return productId;
     }
-
     public StringProperty getNameProperty() {
         return name;
     }
-
     public DoubleProperty getPriceProperty() {
         return price;
     }
-
     public IntegerProperty getQuantityProperty() {
         return quantity;
     }
@@ -37,36 +33,22 @@ public class Product {
     public int getProductId() {
         return productId.get();
     }
-
     public String getName() {
         return name.get();
     }
-
     public double getPrice() {
         return price.get();
     }
-
     public int getQuantity() {
         return quantity.get();
     }
-
     // Regular Setters
-    public void setProductId(int productId) {
-        this.productId.set(productId);
-    }
-
-    public void setName(String name) {
-        this.name.set(name);
-    }
-
     public void setPrice(double price) {
         this.price.set(price);
     }
-
     public void setQuantity(int quantity) {
         this.quantity.set(quantity);
     }
-
     // Method to update stock quantity in memory and in the database
     public boolean updateQuantity(int quantityToAddToCart) {
         // Get the current stock

@@ -18,21 +18,14 @@ public class CartItem {
     public int getCartItemId() {
         return cartItemId.get();
     }
-
-    public void setCartItemId(int cartItemId) {
-        this.cartItemId.set(cartItemId);
-    }
-
     // Getter for product
     public Product getProduct() {
         return product;
     }
-
     // Getter and setter for quantity
     public int getQuantity() {
         return quantity.get();
     }
-
     public void setQuantity(int quantity) {
         this.quantity.set(quantity);
     }
@@ -40,15 +33,12 @@ public class CartItem {
     public double getTotalPrice() {
         return product.getPrice() * getQuantity();
     }
-
     public IntegerProperty getQuantityProperty() {
         return quantity;
     }
-
     public DoubleProperty getTotalPriceProperty() {
         return new SimpleDoubleProperty(getTotalPrice());
     }
-
     // Override equals method to compare based on product (you may adjust this if needed)
     @Override
     public boolean equals(Object obj) {
