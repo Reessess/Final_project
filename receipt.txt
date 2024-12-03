@@ -1,0 +1,10 @@
+Receipt
+
+Product 2 x10 - ₱1500.0
+Product 3 x10 - ₱2000.0
+
+Total: ₱3500.0
+Cash Given: ₱999999.0
+Change: ₱996499.0
+
+Thank you for shopping with us!

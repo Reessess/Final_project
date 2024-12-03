@@ -8,80 +8,40 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.input.MouseEvent;
-
 import java.sql.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class HomeController {
 
     @FXML
     private TableView<Product> productTable;
-
     @FXML
     private TableColumn<Product, Integer> productIdColumn;
-
     @FXML
     private TableColumn<Product, String> productNameColumn;
-
     @FXML
     private TableColumn<Product, Double> productPriceColumn;
-
     @FXML
     private TableColumn<Product, Integer> productQuantityColumn;
-
     @FXML
-    private TextField resultProductName;
-
-    @FXML
-    private TextField resultProductQuantity;
-
-    @FXML
-    private TextField resultProductPrice;
-
-    @FXML
-    private TextField totalPriceField;
-
-    @FXML
-    private TextField calculatorTotalField;  // Added field to show total price in calculator
-
+    private TextField resultProductName, resultProductQuantity, resultProductPrice, totalPriceField, calculatorTotalField, cashField, changeField;
     @FXML
     private Button addProductButton, removeProductButton, searchButton, checkoutButton;
-
     @FXML
     private TableView<CartItem> cartTableView;
-
     @FXML
     private TableColumn<CartItem, String> cartProductNameColumn;
-
     @FXML
     private TableColumn<CartItem, Integer> cartQuantityColumn;
-
     @FXML
     private TableColumn<CartItem, Double> cartPriceColumn;
-
     @FXML
-    private TextField cashField;
-
+    private TextField customerNameField;
     @FXML
-    private TextField changeField; // Field to display the change
-
-    @FXML
-    public void handleCalculateCash() {
-        try {
-            double cashGiven = Double.parseDouble(cashField.getText().trim());
-            double totalPrice = Double.parseDouble(totalPriceField.getText().trim());
-
-            if (cashGiven < totalPrice) {
-                showAlert("Insufficient Cash", "The cash provided is less than the total price.");
-            } else {
-                double change = cashGiven - totalPrice;
-                changeField.setText("₱" + String.format("%.2f", change));  // Show the change in the changeField
-                cashField.clear();
-            }
-        } catch (NumberFormatException e) {
-            showAlert("Input Error", "Please enter a valid number in the cash field.");
-        }
-    }
+    private TextArea receiptTextArea;
 
     private ObservableList<Product> productList = FXCollections.observableArrayList();
     private ObservableList<CartItem> cartList = FXCollections.observableArrayList();
@@ -91,42 +51,39 @@ public class HomeController {
     public void initialize() {
         db = new Database();
 
-        // Set up columns for products table
+        // Initialize product table columns
         productIdColumn.setCellValueFactory(cellData -> cellData.getValue().getProductIdProperty().asObject());
         productNameColumn.setCellValueFactory(cellData -> cellData.getValue().getNameProperty());
         productPriceColumn.setCellValueFactory(cellData -> cellData.getValue().getPriceProperty().asObject());
         productQuantityColumn.setCellValueFactory(cellData -> cellData.getValue().getQuantityProperty().asObject());
 
-        // Set up columns for cart table
+        // Initialize cart table columns
         cartProductNameColumn.setCellValueFactory(cellData -> cellData.getValue().getProduct().getNameProperty());
         cartQuantityColumn.setCellValueFactory(cellData -> cellData.getValue().getQuantityProperty().asObject());
         cartPriceColumn.setCellValueFactory(cellData -> cellData.getValue().getTotalPriceProperty().asObject());
 
         loadProductsFromDatabase();
         productTable.setItems(productList);
-
-        // Set cartList to the TableView
         cartTableView.setItems(cartList);
 
-        // Add listener to resultProductName for real-time search updates
+        // Real-time search
         resultProductName.textProperty().addListener((observable, oldValue, newValue) -> handleSearch());
     }
 
-    // Load products from the database
+    // Load products from database
     private void loadProductsFromDatabase() {
         String query = "SELECT product_id, product_name, price, stock FROM products";
-
         try (Connection connection = db.getConnection();
              Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
 
             while (rs.next()) {
-                int productId = rs.getInt("product_id");
-                String productName = rs.getString("product_name");
-                double productPrice = rs.getDouble("price");
-                int productQuantity = rs.getInt("stock");
-
-                productList.add(new Product(productId, productName, productPrice, productQuantity));
+                productList.add(new Product(
+                        rs.getInt("product_id"),
+                        rs.getString("product_name"),
+                        rs.getDouble("price"),
+                        rs.getInt("stock")
+                ));
             }
         } catch (SQLException e) {
             showAlert("Database Error", "Error loading products from the database.");
@@ -138,147 +95,257 @@ public class HomeController {
     @FXML
     public void handleAddProductToCart() {
         Product selectedProduct = productTable.getSelectionModel().getSelectedItem();
-
         if (selectedProduct != null) {
-            // Check if product already exists in the cart
-            for (CartItem item : cartList) {
-                if (item.getProduct().equals(selectedProduct)) {
-                    item.setQuantity(item.getQuantity() + 1);  // Increase quantity if already in cart
-                    updateTotalPrice();  // Update the total price after adding
-                    return;
-                }
-            }
+            // Check if there's enough stock to add to the cart
+            int availableStock = selectedProduct.getQuantity();
+            if (availableStock > 0) {
+                // Decrease stock in the local product list
+                selectedProduct.decreaseQuantity(1);
 
-            // Add new item to the cart
-            CartItem cartItem = new CartItem(selectedProduct, 1);
-            cartList.add(cartItem);
-            updateTotalPrice();  // Update the total price after adding
+                // Check if the product is already in the cart
+                CartItem existingItem = cartList.stream()
+                        .filter(item -> item.getProduct().equals(selectedProduct))
+                        .findFirst().orElse(null);
+
+                if (existingItem != null) {
+                    // If the product exists, increase the quantity in the cart
+                    existingItem.setQuantity(existingItem.getQuantity() + 1);
+                } else {
+                    // If the product is not in the cart, create a new cart item
+                    CartItem newItem = new CartItem(selectedProduct, 1);
+                    cartList.add(newItem);
+                }
+
+                updateTotalPrice();  // Update the total price of the cart
+            } else {
+                showAlert("Out of Stock", "This product is out of stock.");
+            }
         } else {
             showAlert("No Product Selected", "Please select a product to add to the cart.");
         }
     }
 
+
     // Remove product from cart
     @FXML
     public void handleRemoveFromCart() {
         CartItem selectedCartItem = cartTableView.getSelectionModel().getSelectedItem();
-
         if (selectedCartItem != null) {
-            cartList.remove(selectedCartItem);  // Remove the item from the cart
-            updateTotalPrice();  // Update the total price after removing
+            cartList.remove(selectedCartItem);
+            updateTotalPrice();
         } else {
             showAlert("No Cart Item Selected", "Please select a cart item to remove.");
         }
     }
 
-    // Real-time search handler
+    // Increase quantity of a cart item
+    @FXML
+    public void handleIncreaseQuantity() {
+        CartItem selectedCartItem = cartTableView.getSelectionModel().getSelectedItem();
+        if (selectedCartItem != null) {
+            selectedCartItem.setQuantity(selectedCartItem.getQuantity() + 1);
+            updateTotalPrice();
+        } else {
+            showAlert("No Cart Item Selected", "Please select a cart item to increase quantity.");
+        }
+    }
+
+    // Decrease quantity of a cart item
+    @FXML
+    public void handleDecreaseQuantity() {
+        CartItem selectedCartItem = cartTableView.getSelectionModel().getSelectedItem();
+        if (selectedCartItem != null && selectedCartItem.getQuantity() > 1) {
+            selectedCartItem.setQuantity(selectedCartItem.getQuantity() - 1);
+            updateTotalPrice();
+        } else if (selectedCartItem != null) {
+            showAlert("Quantity Limit", "Quantity cannot be less than 1.");
+        } else {
+            showAlert("No Cart Item Selected", "Please select a cart item to decrease quantity.");
+        }
+    }
+
+    // Real-time product search
     @FXML
     public void handleSearch() {
-        String searchQuery = resultProductName.getText().trim().toLowerCase(); // Case-insensitive search
+        String searchQuery = resultProductName.getText().trim().toLowerCase();
+        ObservableList<Product> searchResults = FXCollections.observableArrayList(
+                productList.filtered(product -> product.getName().toLowerCase().contains(searchQuery))
+        );
 
-        if (!searchQuery.isEmpty()) {
-            ObservableList<Product> searchResults = FXCollections.observableArrayList();
+        productTable.setItems(searchResults);
+        if (searchResults.isEmpty()) {
+            showAlert("No Products Found", "No products match the search query.");
+        }
+    }
 
-            // Search through all products and add those that match the search query
-            for (Product product : productList) {
-                if (product.getName().toLowerCase().contains(searchQuery)) {
-                    searchResults.add(product);
+    // Update total price
+    private void updateTotalPrice() {
+        double totalPrice = cartList.stream()
+                .mapToDouble(CartItem::getTotalPrice)
+                .sum();
+        totalPriceField.setText(String.format("%.2f", totalPrice));
+        calculatorTotalField.setText(String.format("%.2f", totalPrice));
+    }
+
+    // Handle checkout
+    // Handle checkout
+    @FXML
+    public void handleCheckout() {
+        if (cartList.isEmpty()) {
+            showAlert("Cart Empty", "No items in the cart to checkout.");
+            return;
+        }
+
+        try {
+            double cashGiven = Double.parseDouble(cashField.getText().trim());
+            double totalPrice = Double.parseDouble(totalPriceField.getText().trim());
+
+            if (cashGiven < totalPrice) {
+                showAlert("Insufficient Cash", "The cash provided is less than the total price.");
+                return;
+            }
+
+            double change = cashGiven - totalPrice;
+            changeField.setText(String.format("₱%.2f", change));
+
+            // Generate receipt content
+            String receiptContent = generateReceiptContent(totalPrice, cashGiven, change);
+
+            // Deduct stock and record sales
+            updateStockAndRecordSales();  // Ensure stock is updated
+
+            // Save the receipt to a file
+            saveReceiptToFile(receiptContent);
+
+            // Clear the cart and update the total price
+            cartList.clear();
+            updateTotalPrice();
+
+            // Display receipt in TextArea (optional)
+            if (receiptTextArea != null) {
+                receiptTextArea.setText(receiptContent);
+            }
+
+            showAlert("Checkout Successful", "Transaction completed successfully.");
+        } catch (NumberFormatException e) {
+            showAlert("Invalid Input", "Please enter valid numbers for cash.");
+        }
+    }
+
+
+    private void updateStockAndRecordSales() {
+        Connection connection = null;
+        try {
+            connection = db.getConnection(); // Open the connection
+            if (connection == null || connection.isClosed()) {
+                System.out.println("Connection is closed.");
+                return;
+            }
+
+            // Start transaction (optional, but good practice for multiple updates)
+            connection.setAutoCommit(false);
+
+            // Query for updating stock in the database
+            String updateStockQuery = "UPDATE products SET stock = stock - ? WHERE product_id = ?";
+            try (PreparedStatement updateStockStmt = connection.prepareStatement(updateStockQuery)) {
+
+                // Loop through cart items and update stock in the database
+                for (CartItem item : cartList) {
+                    Product product = item.getProduct();
+                    int quantity = item.getQuantity();
+
+                    updateStockStmt.setInt(1, quantity);
+                    updateStockStmt.setInt(2, product.getProductId());
+                    updateStockStmt.executeUpdate();
+
+                    // After updating the database, also update the stock in the local product list
+                    for (Product p : productList) {
+                        if (p.getProductId() == product.getProductId()) {
+                            p.decreaseQuantity(quantity); // Update the local product stock
+                            break;
+                        }
+                    }
                 }
             }
 
-            // If search results are found, update the table view with filtered products
-            if (!searchResults.isEmpty()) {
-                productTable.setItems(searchResults);  // Update the table view with search results
-                resultProductPrice.setText(String.format("%.2f", searchResults.get(0).getPrice()));
-                resultProductQuantity.setText(String.valueOf(searchResults.get(0).getQuantity()));
-                totalPriceField.clear();  // Clear total price when searching
-            } else {
-                showAlert("Product Not Found", "No products found matching the search query.");
-                productTable.setItems(FXCollections.observableArrayList()); // Clear table if no match
+            // Query for inserting sales records into the database
+            String insertSalesQuery = "INSERT INTO sales (product_id, quantity, total_price, date) VALUES (?, ?, ?, NOW())";
+            try (PreparedStatement insertSalesStmt = connection.prepareStatement(insertSalesQuery)) {
+
+                // Loop through cart items and insert sales records
+                for (CartItem item : cartList) {
+                    Product product = item.getProduct();
+                    int quantity = item.getQuantity();
+                    double totalPrice = item.getTotalPrice();
+
+                    insertSalesStmt.setInt(1, product.getProductId());
+                    insertSalesStmt.setInt(2, quantity);
+                    insertSalesStmt.setDouble(3, totalPrice);
+                    insertSalesStmt.executeUpdate();
+                }
             }
-        } else {
-            // If search query is empty, reset to show all products
-            productTable.setItems(productList);  // Reset table to show all products
-            resultProductPrice.clear();
-            resultProductQuantity.clear();
-            totalPriceField.clear();
+
+            // Commit the transaction if everything is successful
+            connection.commit();
+
+        } catch (SQLException e) {
+            // Rollback if any exception occurs during the transaction
+            try {
+                if (connection != null) {
+                    connection.rollback();
+                }
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+            showAlert("Database Error", "Error updating stock and recording sales.");
+            e.printStackTrace();
+        } finally {
+            try {
+                if (connection != null && !connection.isClosed()) {
+                    connection.close(); // Close the connection after operation is complete
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
     }
 
-    // Update the total price field based on cart items
-    private void updateTotalPrice() {
-        double totalPrice = 0;
+
+    private String generateReceiptContent(double totalPrice, double cashGiven, double change) {
+        StringBuilder receiptContent = new StringBuilder();
+        receiptContent.append("Receipt\n\n");
         for (CartItem item : cartList) {
-            totalPrice += item.getTotalPrice();  // Sum the total price of all items
+            receiptContent.append(item.getProduct().getName())
+                    .append(" x")
+                    .append(item.getQuantity())
+                    .append(" - ₱")
+                    .append(item.getTotalPrice())
+                    .append("\n");
         }
-        totalPriceField.setText(String.format("%.2f", totalPrice));  // Update the total price field with the calculated value
-
-        // Also update the calculator total field
-        calculatorTotalField.setText(String.format("%.2f", totalPrice));  // Show total price in calculator
+        receiptContent.append("\nTotal: ₱").append(totalPrice)
+                .append("\nCash Given: ₱").append(cashGiven)
+                .append("\nChange: ₱").append(change)
+                .append("\n\nThank you for shopping with us!");
+        return receiptContent.toString();
     }
 
-    // Show alert messages
+    private void saveReceiptToFile(String receiptContent) {
+        try {
+            File file = new File("receipt.txt");
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+                writer.write(receiptContent);
+            }
+        } catch (IOException e) {
+            showAlert("File Error", "Error saving receipt to file.");
+            e.printStackTrace();
+        }
+    }
+
     private void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
-    }
-
-    // Close database connection
-    @FXML
-    public void close() {
-        db.closeConnection();
-    }
-
-    // Increase quantity in cart
-    @FXML
-    public void handleIncreaseQuantity(ActionEvent event) {
-        CartItem selectedCartItem = cartTableView.getSelectionModel().getSelectedItem();
-        if (selectedCartItem != null) {
-            selectedCartItem.setQuantity(selectedCartItem.getQuantity() + 1);  // Increase quantity
-            updateTotalPrice();  // Update total price
-        }
-    }
-
-    // Decrease quantity in cart
-    @FXML
-    public void handleDecreaseQuantity(ActionEvent event) {
-        CartItem selectedCartItem = cartTableView.getSelectionModel().getSelectedItem();
-        if (selectedCartItem != null && selectedCartItem.getQuantity() > 1) {
-            selectedCartItem.setQuantity(selectedCartItem.getQuantity() - 1);  // Decrease quantity
-            updateTotalPrice();  // Update total price
-        }
-    }
-
-    // Handle checkout
-    @FXML
-    public void handleCheckout() {
-        // Step 1: Calculate the total price from the cart
-        double totalPrice = 0;
-        for (CartItem cartItem : cartList) {
-            totalPrice += cartItem.getTotalPrice();  // Sum the total price of all items
-        }
-
-        // Step 2: Display the total price
-        totalPriceField.setText(String.format("%.2f", totalPrice));  // Update the total price field
-
-        // Step 3: Optionally, you can save this checkout data to a database or generate a receipt
-        // For example, you can insert the checkout details into a transactions table
-
-        // Step 4: Clear the cart after checkout
-        cartList.clear();  // Clear the cart list
-        cartTableView.setItems(cartList);  // Update the cart table view with the cleared cart
-
-        // Optionally: Show a confirmation message
-        showAlert("Checkout Complete", "Your checkout was successful. Thank you for your purchase!");
-
-        // Step 5: Reset any fields
-        totalPriceField.clear();  // Clear total price field
-        calculatorTotalField.clear();  // Clear the calculator total price field
-        resultProductName.clear();  // Clear search bar
-        resultProductPrice.clear();  // Clear product details
-        resultProductQuantity.clear();  // Clear quantity field
     }
 }

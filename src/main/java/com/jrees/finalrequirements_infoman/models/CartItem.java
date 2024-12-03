@@ -3,71 +3,91 @@ package com.jrees.finalrequirements_infoman.models;
 import javafx.beans.property.*;
 
 public class CartItem {
-    private final ObjectProperty<Product> product;
+    private final IntegerProperty cartItemId;
+    private final Product product;
     private final IntegerProperty quantity;
-    private final DoubleProperty totalPrice;
 
+    // Constructor
     public CartItem(Product product, int quantity) {
-        this.product = new SimpleObjectProperty<>(product);
+        this.product = product;
         this.quantity = new SimpleIntegerProperty(quantity);
-        this.totalPrice = new SimpleDoubleProperty(product.getPrice() * quantity);
-
-        // Listener to update total price if product price changes
-        this.product.addListener((observable, oldValue, newValue) -> updateTotalPrice());
-
-        // Listener to update total price if quantity changes
-        this.quantity.addListener((observable, oldValue, newValue) -> updateTotalPrice());
+        this.cartItemId = new SimpleIntegerProperty(0); // Default value until loaded from DB
     }
 
+    // Getter and setter for cartItemId
+    public int getCartItemId() {
+        return cartItemId.get();
+    }
+
+    public void setCartItemId(int cartItemId) {
+        this.cartItemId.set(cartItemId);
+    }
+
+    // Getter for product
     public Product getProduct() {
-        return product.get();
-    }
-
-    public ObjectProperty<Product> getProductProperty() {
         return product;
     }
 
+    // Getter and setter for quantity
     public int getQuantity() {
         return quantity.get();
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity.set(quantity);
+    }
+
+    // Method to increase quantity of this cart item
+    public void increaseQuantity(int amount) {
+        setQuantity(getQuantity() + amount);
+    }
+
+    // Method to decrease quantity of this cart item
+    public boolean decreaseQuantity(int amount) {
+        int currentQuantity = getQuantity();
+        if (currentQuantity - amount >= 0) {
+            setQuantity(currentQuantity - amount);
+            return true;
+        }
+        return false; // Return false if trying to decrease below zero
+    }
+
+    // Total price for this cart item (price * quantity)
+    public double getTotalPrice() {
+        return product.getPrice() * getQuantity();
+    }
+
+    // Property methods for TableView binding
+    public IntegerProperty getCartItemIdProperty() {
+        return cartItemId;
     }
 
     public IntegerProperty getQuantityProperty() {
         return quantity;
     }
 
-    public double getTotalPrice() {
-        return totalPrice.get();
-    }
-
     public DoubleProperty getTotalPriceProperty() {
-        return totalPrice;
+        return new SimpleDoubleProperty(getTotalPrice());
     }
 
-    public void setQuantity(int quantity) {
-        this.quantity.set(quantity);
-        updateTotalPrice();
-    }
-
-    private void updateTotalPrice() {
-        // Recalculate total price based on product price and quantity
-        this.totalPrice.set(product.get().getPrice() * quantity.get());
-    }
-
+    // Override equals method to compare based on product (you may adjust this if needed)
     @Override
-    public String toString() {
-        return product.get().getName() + " - Quantity: " + quantity.get() + " - Total: " + totalPrice.get();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        CartItem cartItem = (CartItem) o;
-        return product.get().getProductId() == cartItem.product.get().getProductId();
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        CartItem cartItem = (CartItem) obj;
+        return product.getProductId() == cartItem.product.getProductId();
     }
 
     @Override
     public int hashCode() {
-        return product.get().getProductId();
+        return Integer.hashCode(product.getProductId());
+    }
+
+    // String representation for easier debugging or logging
+    @Override
+    public String toString() {
+        return String.format("CartItem{id=%d, product=%s, quantity=%d, total=₱%.2f}",
+                getCartItemId(), product.getName(), getQuantity(), getTotalPrice());
     }
 }

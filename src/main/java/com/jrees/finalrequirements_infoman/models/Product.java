@@ -1,5 +1,6 @@
 package com.jrees.finalrequirements_infoman.models;
 
+import com.jrees.finalrequirements_infoman.utility.Database;
 import javafx.beans.property.*;
 
 public class Product {
@@ -66,20 +67,38 @@ public class Product {
         this.quantity.set(quantity);
     }
 
-    // Method to decrease stock when added to cart
-    public void decreaseQuantity(int quantityToDecrease) {
+    // Method to update stock quantity (handles both increase and decrease)
+    public boolean updateQuantity(int quantityToUpdate) {
         int currentQuantity = this.quantity.get();
-        if (quantityToDecrease <= currentQuantity) {
-            this.quantity.set(currentQuantity - quantityToDecrease);
-        } else {
-            throw new IllegalArgumentException("Not enough stock available.");
+        int newQuantity = currentQuantity + quantityToUpdate;
+
+        if (newQuantity < 0) {
+            System.out.println("Insufficient stock.");
+            return false;  // Not enough stock
         }
+
+        this.quantity.set(newQuantity);
+
+        // Update the stock in the database
+        Database db = new Database();
+        db.updateProductStock(this.productId.get(), newQuantity);  // Update stock in DB
+        db.closeConnection();
+        return true;  // Success
+    }
+
+    // Method to decrease stock when added to cart
+    public boolean decreaseQuantity(int quantityToDecrease) {
+        return updateQuantity(-quantityToDecrease);
     }
 
     // Method to increase stock when removing from cart
     public void increaseQuantity(int quantityToIncrease) {
-        int currentQuantity = this.quantity.get();
-        this.quantity.set(currentQuantity + quantityToIncrease);
+        updateQuantity(quantityToIncrease);
+    }
+
+    // Method to get available stock
+    public int getStockAvailable() {
+        return quantity.get();
     }
 
     // Method to check if a product's name matches a search query (case-insensitive)
@@ -87,9 +106,35 @@ public class Product {
         return name.get().toLowerCase().contains(query.toLowerCase());
     }
 
+    // Method to get price as a formatted string
+    public String getFormattedPrice() {
+        return String.format("%.2f", price.get());
+    }
+
+    // Method to get the product's details formatted for the receipt
+    public String getReceiptLine(int quantity) {
+        return String.format("%s - Qty: %d - ₱%.2f", name.get(), quantity, price.get() * quantity);
+    }
+
+    // String representation of the product
     @Override
     public String toString() {
-        return String.format("Product ID: %d, Name: %s, Price: %.2f, Quantity: %d",
+        return String.format("Product ID: %d, Name: %s, Price: ₱%.2f, Quantity Available: %d",
                 getProductId(), getName(), getPrice(), getQuantity());
+    }
+
+    // Equality check based on product ID
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Product product = (Product) o;
+        return productId.get() == product.productId.get();
+    }
+
+    // HashCode based on product ID for consistent equality checks
+    @Override
+    public int hashCode() {
+        return Integer.hashCode(productId.get());
     }
 }
