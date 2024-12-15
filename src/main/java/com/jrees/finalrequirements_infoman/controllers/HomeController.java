@@ -220,7 +220,7 @@ public class HomeController {
                     cartList.add(newItem);
 
                     // Decrease local stock of the product (correct the logic here)
-                    selectedProduct.decreaseQuantity(1); // Decrease stock locally by 1
+                    selectedProduct.decreaseQuantity(-1); // Decrease stock locally by 1
 
                     // Deduct 1 stock from the database
                     Database db = new Database();
@@ -584,7 +584,7 @@ public class HomeController {
         receiptContent.append("Cash Given: ₱").append(String.format("%.2f", cashGiven)).append("\n");
         receiptContent.append("Change: ₱").append(String.format("%.2f", change)).append("\n");
         receiptContent.append("========================================\n");
-        receiptContent.append("Thank you for shopping with us!\n");
+        receiptContent.append("Thank you for shopping BOSS!\n");
 
         return receiptContent.toString();
     }
