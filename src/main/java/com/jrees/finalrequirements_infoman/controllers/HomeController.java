@@ -59,7 +59,6 @@ public class HomeController {
     private TextField customerEmailField;
     @FXML
     private Button increaseQuantityButton;
-
     @FXML
     private Button decreaseQuantityButton;
 
@@ -132,6 +131,15 @@ public class HomeController {
             double price = Double.parseDouble(productPriceText);
             int quantity = Integer.parseInt(productQuantityText);
 
+            // Check if the product already exists in the local product list
+            for (Product product : productList) {
+                if (product.getName().equalsIgnoreCase(productName)) {
+                    // If the product already exists, show an alert and return
+                    showAlert("Product Already Exists", "The product already exists in the list.");
+                    return;
+                }
+            }
+
             // Create a Database instance
             Database db = new Database();
 
@@ -146,7 +154,7 @@ public class HomeController {
                 loadProductsFromDatabase();  // Reload the product list from the database
 
                 // Show success message
-                showAlert("Product Added", "Pasok na Pasok Bossing.");
+                showAlert("Product Added", "Successfully added.");
             } else {
                 showAlert("Error", "Failed to add product to the database.");
             }
@@ -160,6 +168,7 @@ public class HomeController {
             e.printStackTrace();
         }
     }
+
 
 
     // Remove product from database
