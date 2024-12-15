@@ -231,6 +231,7 @@ public class Database {
         }
     }
 
+
     // Method to process the checkout (update stock and record sales)
     public void processCheckout(int productId, int quantity, double totalPrice) {
         try {

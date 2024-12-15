@@ -58,18 +58,6 @@ public class HomeController {
     @FXML
     private TextField customerEmailField;
 
-    public String getCustomerName() {
-        return customerNameField.getText();
-    }
-
-    public String getCustomerPhone() {
-        return customerPhoneField.getText();
-    }
-
-    public String getCustomerEmail() {
-        return customerEmailField.getText();
-    }
-
     private ObservableList<Product> productList = FXCollections.observableArrayList();
     private ObservableList<CartItem> cartList = FXCollections.observableArrayList();
     private Database db;
@@ -416,17 +404,25 @@ public class HomeController {
                 return;
             }
 
+            // Get customer details from input fields
+            String customerName = customerNameField.getText().trim();
+            String customerPhone = customerPhoneField.getText().trim();
+            String customerEmail = customerEmailField.getText().trim();
+
+            if (customerName.isEmpty() || customerPhone.isEmpty() || customerEmail.isEmpty()) {
+                showAlert("Incomplete Details", "Please provide customer name, phone, and email.");
+                return;
+            }
+
             double change = cashGiven - totalPrice;
             changeField.setText(String.format("₱%.2f", change));
 
-            // Process the cart items and update the stock
-
-
-            // Generate receipt content
-            String receiptContent = generateReceiptContent(totalPrice, cashGiven, change);
+            // Generate receipt content with customer details
+            String receiptContent = generateReceiptContent(customerName, customerPhone, customerEmail, totalPrice, cashGiven, change);
 
             // Deduct stock and record sales
             updateStockAndRecordSales();  // Ensure stock is updated
+            saveTransactionToDatabase(customerName, customerPhone, customerEmail, totalPrice);
 
             // Save the receipt to a file
             saveReceiptToFile(receiptContent);
@@ -446,6 +442,32 @@ public class HomeController {
         }
     }
 
+    private void saveTransactionToDatabase(String customerName, String customerPhone, String customerEmail, double totalPrice) {
+        String query = "INSERT INTO transactions (customer_name, customer_phone, customer_email, total_price, transaction_date) VALUES (?, ?, ?, ?, ?)";
+
+        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/pos_db", "FinalProject", "reesjhed");
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            // Set parameters for the query
+            statement.setString(1, customerName);
+            statement.setString(2, customerPhone);
+            statement.setString(3, customerEmail);
+            statement.setDouble(4, totalPrice);
+            statement.setTimestamp(5, new Timestamp(System.currentTimeMillis()));  // Set the current timestamp
+
+            // Execute the query to insert the transaction record
+            int rowsAffected = statement.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Transaction saved successfully.");
+            } else {
+                System.out.println("Failed to save the transaction.");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            showAlert("Database Error", "An error occurred while saving the transaction to the database.");
+        }
+    }
     private void updateStockAndRecordSales() {
         Connection connection = null;
         try {
@@ -535,35 +557,58 @@ public class HomeController {
         }
     }
 
-    private String generateReceiptContent(double totalPrice, double cashGiven, double change) {
+    private String generateReceiptContent(String customerName, String customerPhone, String customerEmail, double totalPrice, double cashGiven, double change) {
         StringBuilder receiptContent = new StringBuilder();
-        receiptContent.append("Receipt\n\n");
+
+        // Receipt header
+        receiptContent.append("Receipt\n");
+        receiptContent.append("========================================\n");
+        receiptContent.append("Customer: ").append(customerName).append("\n");
+        receiptContent.append("Phone: ").append(customerPhone).append("\n");
+        receiptContent.append("Email: ").append(customerEmail).append("\n");
+        receiptContent.append("========================================\n");
+
+        // List of cart items
         for (CartItem item : cartList) {
             receiptContent.append(item.getProduct().getName())
                     .append(" x")
                     .append(item.getQuantity())
                     .append(" - ₱")
-                    .append(item.getTotalPrice())
+                    .append(String.format("%.2f", item.getTotalPrice())) // Ensuring price is formatted to 2 decimal places
                     .append("\n");
         }
-        receiptContent.append("\nTotal: ₱").append(totalPrice)
-                .append("\nCash Given: ₱").append(cashGiven)
-                .append("\nChange: ₱").append(change)
-                .append("\n\nThank you for shopping with us!");
+
+        // Total, cash, and change
+        receiptContent.append("\n========================================\n");
+        receiptContent.append("Total: ₱").append(String.format("%.2f", totalPrice)).append("\n");
+        receiptContent.append("Cash Given: ₱").append(String.format("%.2f", cashGiven)).append("\n");
+        receiptContent.append("Change: ₱").append(String.format("%.2f", change)).append("\n");
+        receiptContent.append("========================================\n");
+        receiptContent.append("Thank you for shopping with us!\n");
+
         return receiptContent.toString();
     }
-
     private void saveReceiptToFile(String receiptContent) {
-        try {
-            File file = new File("receipt.txt");
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-                writer.write(receiptContent);
-            }
+        // Ensure receipt directory exists
+        File receiptDirectory = new File("receipts");
+        if (!receiptDirectory.exists()) {
+            receiptDirectory.mkdirs();  // Create directory if it doesn't exist
+        }
+
+        // Generate a unique filename using current time in milliseconds
+        long timestamp = System.currentTimeMillis();  // Get current time in milliseconds
+        File file = new File(receiptDirectory, "receipt_" + timestamp + ".txt");
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            writer.write(receiptContent);  // Write the receipt content to the file
         } catch (IOException e) {
             showAlert("File Error", "Error saving receipt to file.");
             e.printStackTrace();
         }
     }
+
+
+
 
     private void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);

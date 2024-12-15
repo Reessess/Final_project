@@ -1,0 +1,14 @@
+Receipt
+========================================
+Customer: John rees sales
+Phone: sdasdasd
+Email: asdasdasd
+========================================
+sdsdsd x1 - ₱323.00
+
+========================================
+Total: ₱323.00
+Cash Given: ₱2121221.00
+Change: ₱2120898.00
+========================================
+Thank you for shopping with us!
