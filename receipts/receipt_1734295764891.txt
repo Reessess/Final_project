@@ -1,0 +1,15 @@
+Receipt
+========================================
+Customer: jhed
+Phone: 0898124
+Email: johnnyburat@lorma.edu
+========================================
+Chakra set raw stones x3 - ₱2100.00
+Bikini x3 - ₱2400.00
+
+========================================
+Total: ₱4500.00
+Cash Given: ₱5000.00
+Change: ₱500.00
+========================================
+Thank you for shopping with us!
