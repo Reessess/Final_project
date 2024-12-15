@@ -1,5 +1,6 @@
 package com.jrees.finalrequirements_infoman.utility;
-
+import com.jrees.finalrequirements_infoman.models.CartItem;
+import java.util.List;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
@@ -12,6 +13,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+
 
 public class Database {
     private Connection connection;
@@ -218,7 +220,6 @@ public class Database {
         }
     }
 
-
     // Method to record a sale in the sales table
     public void recordSale(int productId, int quantity, double totalPrice) {
         String insertSaleQuery = "INSERT INTO sales (product_id, quantity, total_price, sale_date) VALUES (?, ?, ?, NOW())";
@@ -234,9 +235,37 @@ public class Database {
         }
     }
 
+    public void recordSalesItems(int transactionId, List<CartItem> cartList) {
+        String insertSalesItemQuery = "INSERT INTO sales_item (sales_id, product_id, quantity, total_price) VALUES (?, ?, ?, ?)";
+
+        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/pos_db", "FinalProject", "reesjhed");
+             PreparedStatement stmt = connection.prepareStatement(insertSalesItemQuery)) {
+
+            for (CartItem item : cartList) {
+                stmt.setInt(1, transactionId);  // Set the transaction ID
+                stmt.setInt(2, item.getProduct().getProductId());  // Get productId from Product object
+                stmt.setInt(3, item.getQuantity());  // Set the quantity of the product
+                stmt.setDouble(4, item.getTotalPrice());  // Set the total price of the item
+
+                stmt.addBatch();  // Add the insert operation to the batch
+            }
+
+            int[] rowsAffected = stmt.executeBatch();
+            if (rowsAffected.length > 0) {
+                System.out.println("Sales items saved successfully.");
+            } else {
+                System.err.println("Failed to save sales items. No rows were affected.");
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error occurred while saving sales items to the database. Details:");
+            e.printStackTrace();
+        }
+    }
+
 
     // Method to process the checkout (update stock and record sales)
-    public void processCheckout(int productId, int quantity, double totalPrice) {
+    public void processCheckout(int productId, int quantity, double totalPrice, int transactionId, List<CartItem> cartList) {
         try {
             connection.setAutoCommit(false); // Start transaction
 
@@ -245,6 +274,9 @@ public class Database {
 
             // Record sale
             recordSale(productId, quantity, totalPrice);
+
+            // Record sales items
+            recordSalesItems(transactionId, cartList);
 
             connection.commit(); // Commit transaction
             System.out.println("Checkout processed successfully.");
@@ -270,3 +302,4 @@ public class Database {
         }
     }
 }
+

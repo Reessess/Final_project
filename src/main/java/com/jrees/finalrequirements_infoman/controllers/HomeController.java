@@ -1,4 +1,5 @@
 package com.jrees.finalrequirements_infoman.controllers;
+import com.jrees.finalrequirements_infoman.models.CartItem;
 
 import com.jrees.finalrequirements_infoman.models.CartItem;
 import com.jrees.finalrequirements_infoman.models.Product;
@@ -14,6 +15,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Optional;
+import java.util.List;
+
 
 public class HomeController {
 
@@ -61,6 +64,7 @@ public class HomeController {
     private Button increaseQuantityButton;
     @FXML
     private Button decreaseQuantityButton;
+
 
 
     private ObservableList<Product> productList = FXCollections.observableArrayList();
@@ -326,10 +330,6 @@ public class HomeController {
         }
     }
 
-
-
-
-
     // Decrease quantity of a cart item
     @FXML
     public void handleDecreaseQuantity() {
@@ -370,9 +370,6 @@ public class HomeController {
             decreaseQuantityButton.setDisable(false); // Re-enable button
         }
     }
-
-
-
 
     // Real-time product search
     @FXML
@@ -443,9 +440,16 @@ public class HomeController {
             // Generate receipt content with customer details
             String receiptContent = generateReceiptContent(customerName, customerPhone, customerEmail, totalPrice, cashGiven, change);
 
-            // Deduct stock and record sales
-            updateStockAndRecordSales();  // Ensure stock is updated
-            saveTransactionToDatabase(customerName, customerPhone, customerEmail, totalPrice);
+            // Save transaction and get transaction ID
+            int transactionId = saveTransactionToDatabase(customerName, customerPhone, customerEmail, totalPrice);
+
+            if (transactionId == -1) {
+                showAlert("Database Error", "Failed to record the transaction.");
+                return;
+            }
+
+            // Deduct stock and record sales items
+            saveSalesItemsToDatabase(transactionId, cartList);
 
             // Save the receipt to a file
             saveReceiptToFile(receiptContent);
@@ -465,11 +469,12 @@ public class HomeController {
         }
     }
 
-    private void saveTransactionToDatabase(String customerName, String customerPhone, String customerEmail, double totalPrice) {
+
+    public int saveTransactionToDatabase(String customerName, String customerPhone, String customerEmail, double totalPrice) {
         String query = "INSERT INTO transactions (customer_name, customer_phone, customer_email, total_price, transaction_date) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/pos_db", "FinalProject", "reesjhed");
-             PreparedStatement statement = connection.prepareStatement(query)) {
+             PreparedStatement statement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
 
             // Set parameters for the query
             statement.setString(1, customerName);
@@ -481,7 +486,12 @@ public class HomeController {
             // Execute the query to insert the transaction record
             int rowsAffected = statement.executeUpdate();
             if (rowsAffected > 0) {
-                System.out.println("Transaction saved successfully.");
+                // Retrieve the auto-generated transaction ID
+                try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        return generatedKeys.getInt(1);  // Return the generated transaction ID
+                    }
+                }
             } else {
                 System.out.println("Failed to save the transaction.");
             }
@@ -490,7 +500,73 @@ public class HomeController {
             e.printStackTrace();
             showAlert("Database Error", "An error occurred while saving the transaction to the database.");
         }
+        return -1;  // Return -1 if the transaction was not saved
     }
+
+    private void saveSalesItemsToDatabase(int transactionId, List<CartItem> cartList) {
+        String query = "INSERT INTO sales_item (sales_id, product_id, quantity, total_price) VALUES (?, ?, ?, ?)";
+        Connection connection = null; // Declare connection outside of try block
+
+        try {
+            // Establish the connection
+            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/pos_db", "FinalProject", "reesjhed");
+
+            // Turn off auto-commit for batch processing
+            connection.setAutoCommit(false);
+
+            // Prepare the statement
+            try (PreparedStatement statement = connection.prepareStatement(query)) {
+
+                // Loop through each cart item and insert it into the sales_item table
+                for (CartItem item : cartList) {
+                    statement.setInt(1, transactionId);       // Set the transaction ID
+                    statement.setInt(2, item.getProduct().getProductId());  // Get productId from Product object
+                    statement.setInt(3, item.getQuantity());   // Set the quantity of the product
+                    statement.setDouble(4, item.getTotalPrice());  // Set the total price of the item
+
+                    // Add the insert query to the batch
+                    statement.addBatch(); // Add to batch for better performance
+                }
+
+                // Execute the batch insert
+                int[] rowsAffected = statement.executeBatch();
+
+                // Commit the transaction to the database
+                connection.commit();
+
+                if (rowsAffected.length > 0) {
+                    System.out.println("Sales items saved successfully.");
+                } else {
+                    System.out.println("Failed to save sales items.");
+                }
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+                showAlert("Database Error", "An error occurred while saving sales items to the database.");
+                // If there was an error, roll back the transaction
+                try {
+                    connection.rollback();
+                } catch (SQLException rollbackException) {
+                    rollbackException.printStackTrace();
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            showAlert("Database Error", "An error occurred while establishing a connection to the database.");
+        } finally {
+            // Ensure the connection is closed properly
+            try {
+                if (connection != null && !connection.isClosed()) {
+                    connection.setAutoCommit(true); // Restore default auto-commit behavior
+                    connection.close(); // Close the connection
+                }
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
     private void updateStockAndRecordSales() {
         Connection connection = null;
         try {
@@ -629,9 +705,6 @@ public class HomeController {
             e.printStackTrace();
         }
     }
-
-
-
 
     private void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
