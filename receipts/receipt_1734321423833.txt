@@ -1,0 +1,15 @@
+Receipt
+========================================
+Customer: John rees sales
+Phone: 09081045620
+Email: jrees025@gmail.com
+========================================
+buto na mlaki x14 - ₱1386.00
+pajama x5 - ₱440.00
+
+========================================
+Total: ₱1826.00
+Cash Given: ₱2000.00
+Change: ₱174.00
+========================================
+Thank you for shopping BOSS!

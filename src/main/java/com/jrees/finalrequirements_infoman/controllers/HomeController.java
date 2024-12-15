@@ -57,6 +57,12 @@ public class HomeController {
     private TextField customerPhoneField;
     @FXML
     private TextField customerEmailField;
+    @FXML
+    private Button increaseQuantityButton;
+
+    @FXML
+    private Button decreaseQuantityButton;
+
 
     private ObservableList<Product> productList = FXCollections.observableArrayList();
     private ObservableList<CartItem> cartList = FXCollections.observableArrayList();
@@ -80,6 +86,7 @@ public class HomeController {
         loadProductsFromDatabase();
         productTable.setItems(productList);
         cartTableView.setItems(cartList);
+        cartTableView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 
         // Real-time search
         resultProductName.textProperty().addListener((observable, oldValue, newValue) -> handleSearch());
@@ -219,40 +226,24 @@ public class HomeController {
                     CartItem newItem = new CartItem(selectedProduct, 1); // Set initial quantity to 1
                     cartList.add(newItem);
 
-                    // Decrease local stock of the product (correct the logic here)
+                    // Decrease local stock of the product
                     selectedProduct.decreaseQuantity(-1); // Decrease stock locally by 1
 
                     // Deduct 1 stock from the database
                     Database db = new Database();
-                    boolean success = db.updateProductStock(selectedProduct.getProductId(), 1); // Deduct 1 stock from DB
+                    boolean success = db.updateProductStock(selectedProduct.getProductId(), 0); // Decrease stock by 1 in DB
                     db.closeConnection();
 
                     if (!success) {
                         showAlert("Database Error", "Failed to update stock in the database.");
                         // Rollback local stock change if DB update fails
-                        selectedProduct.increaseQuantity(1); // Increase stock back if DB update fails
+                        selectedProduct.increaseQuantity(1); // Restore stock locally
                         // Remove the product from cart if stock update fails
                         cartList.remove(newItem);
                     }
                 } else {
-                    // If the product already exists in the cart, increase the quantity
-                    existingItem.setQuantity(existingItem.getQuantity() + 1);
-
-                    // Decrease local stock of the product (correct the logic here)
-                    selectedProduct.decreaseQuantity(-1); // Decrease stock locally by 1
-
-                    // Deduct 1 stock from the database
-                    Database db = new Database();
-                    boolean success = db.updateProductStock(selectedProduct.getProductId(), 1); // Deduct 1 stock from DB
-                    db.closeConnection();
-
-                    if (!success) {
-                        showAlert("Database Error", "Failed to update stock in the database.");
-                        // Rollback local stock change if DB update fails
-                        selectedProduct.increaseQuantity(1); // Increase stock back if DB update fails
-                        // Rollback the cart item's quantity change if DB update fails
-                        existingItem.setQuantity(existingItem.getQuantity() - 1);
-                    }
+                    // If the product already exists in the cart, show a prompt
+                    showAlert("Product Already in Cart", "This product is already in your cart.");
                 }
 
                 // Update the total price of the cart
@@ -267,6 +258,7 @@ public class HomeController {
             showAlert("No Product Selected", "Please select a product to add to the cart.");
         }
     }
+
 
     // Remove product from cart
     @FXML
@@ -283,74 +275,96 @@ public class HomeController {
     // Increase quantity of a cart item
     @FXML
     public void handleIncreaseQuantity() {
-        CartItem selectedCartItem = cartTableView.getSelectionModel().getSelectedItem();
-        if (selectedCartItem != null) {
-            Product product = selectedCartItem.getProduct();
-            int availableStock = product.getQuantity();
+        increaseQuantityButton.setDisable(true); // Prevent multiple clicks
 
-            // Check if there's enough stock to increase quantity
-            if (availableStock > 0) {  // Ensure there is stock to increase
-                // Increase the quantity in the cart
-                selectedCartItem.setQuantity(selectedCartItem.getQuantity() + 1);
+        try {
+            CartItem selectedCartItem = cartTableView.getSelectionModel().getSelectedItem();
+            if (selectedCartItem != null) {
+                Product product = selectedCartItem.getProduct();
+                int availableStock = product.getQuantity();
 
-                // Decrease the local stock by 1
-                product.decreaseQuantity(-1);
+                // Check if there is enough stock to increase quantity
+                if (availableStock > 0) {
+                    // Increase the quantity in the cart
+                    selectedCartItem.setQuantity(selectedCartItem.getQuantity() + 1);
 
-                // Update the database stock (Deduct 1 from DB)
-                Database db = new Database();
-                boolean success = db.updateProductStock(product.getProductId(), 1);  // Decrease 1 from DB
-                db.closeConnection();
+                    // Decrease the local stock by 1
+                    product.increaseQuantity(1);
 
-                if (!success) {
-                    // Rollback if DB update fails
-                    product.increaseQuantity(1);  // Undo local stock change
-                    selectedCartItem.setQuantity(selectedCartItem.getQuantity() - 1);  // Undo cart item quantity change
-                    showAlert("Database Error", "Failed to update stock in the database.");
+                    // Update the stock in the database
+                    Database db = new Database();
+                    boolean success = db.updateProductStock(product.getProductId(), 0); // Decrease stock by 1 in DB
+                    db.closeConnection();
+
+                    if (!success) {
+                        // Rollback changes if database update fails
+                        product.increaseQuantity(1); // Restore stock
+                        selectedCartItem.setQuantity(selectedCartItem.getQuantity() - 1); // Undo cart quantity
+                        showAlert("Database Error", "Failed to update stock in the database.");
+                    } else {
+                        // Update the total price of the cart after quantity change
+                        updateTotalPrice();
+                        cartTableView.refresh();
+                    }
+                } else {
+                    showAlert("Insufficient Stock", "There is not enough stock to increase the quantity.");
                 }
-
-                // Update the total price of the cart
-                updateTotalPrice();  // Recalculate total price after change
             } else {
-                showAlert("Insufficient Stock", "There is not enough stock to increase the quantity.");
+                showAlert("No Cart Item Selected", "Please select a cart item to increase quantity.");
             }
-        } else {
-            showAlert("No Cart Item Selected", "Please select a cart item to increase quantity.");
+        } finally {
+            increaseQuantityButton.setDisable(false); // Re-enable button
         }
     }
+
+
+
+
 
     // Decrease quantity of a cart item
     @FXML
     public void handleDecreaseQuantity() {
-        CartItem selectedCartItem = cartTableView.getSelectionModel().getSelectedItem();
-        if (selectedCartItem != null && selectedCartItem.getQuantity() > 1) {
-            Product product = selectedCartItem.getProduct();
+        decreaseQuantityButton.setDisable(true); // Prevent multiple clicks
 
-            // Decrease the quantity in the cart
-            selectedCartItem.setQuantity(selectedCartItem.getQuantity() - 1);
+        try {
+            CartItem selectedCartItem = cartTableView.getSelectionModel().getSelectedItem();
+            if (selectedCartItem != null && selectedCartItem.getQuantity() > 1) {
+                Product product = selectedCartItem.getProduct();
 
-            // decrease the local stock by 1
-            product.decreaseQuantity(1);
+                // Decrease the quantity in the cart
+                selectedCartItem.setQuantity(selectedCartItem.getQuantity() - 1);
 
-            // Update the database stock (Add 1 back to DB)
-            Database db = new Database();
-            boolean success = db.updateProductStock(product.getProductId(), -1);  // Add 1 back to DB
-            db.closeConnection();
+                // Decrease the local stock by 1
+                product.decreaseQuantity(1);
 
-            if (!success) {
-                // Rollback if DB update fails
-                product.decreaseQuantity(1);  // Undo local stock increase
-                selectedCartItem.setQuantity(selectedCartItem.getQuantity() + 1);  // Undo cart item quantity change
-                showAlert("Database Error", "Failed to update stock in the database.");
+                // Update the stock in the database
+                Database db = new Database();
+                boolean success = db.updateProductStock(product.getProductId(), 0); // Increase stock by 1 in DB (returning to stock)
+                db.closeConnection();
+
+                if (!success) {
+                    // Rollback changes if database update fails
+                    product.increaseQuantity(1); // Restore local stock
+                    selectedCartItem.setQuantity(selectedCartItem.getQuantity() + 1); // Undo cart quantity change
+                    showAlert("Database Error", "Failed to update stock in the database.");
+                } else {
+                    // Update the total price of the cart after quantity change
+                    updateTotalPrice();
+                    cartTableView.refresh();
+                }
+            } else if (selectedCartItem != null) {
+                showAlert("Quantity Limit", "Quantity cannot be less than 1.");
+            } else {
+                showAlert("No Cart Item Selected", "Please select a cart item to decrease quantity.");
             }
-
-            // Update the total price of the cart
-            updateTotalPrice();  // Recalculate total price after change
-        } else if (selectedCartItem != null) {
-            showAlert("Quantity Limit", "Quantity cannot be less than 1.");
-        } else {
-            showAlert("No Cart Item Selected", "Please select a cart item to decrease quantity.");
+        } finally {
+            decreaseQuantityButton.setDisable(false); // Re-enable button
         }
     }
+
+
+
+
     // Real-time product search
     @FXML
     public void handleSearch() {

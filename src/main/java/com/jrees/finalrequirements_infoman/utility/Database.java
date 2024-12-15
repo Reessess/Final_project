@@ -171,43 +171,45 @@ public class Database {
 
 
     // Method to update the stock of a product
-    public boolean updateProductStock(int productId, int quantityToDeduct) {
-        // Check current stock in the database before updating
-        String checkStockQuery = "SELECT stock FROM products WHERE product_id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(checkStockQuery)) {
-            stmt.setInt(1, productId);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                int currentStock = rs.getInt("stock");
-                System.out.println("Current stock for product ID " + productId + ": " + currentStock);
+    public boolean updateProductStock(int productId, int quantityChange) {
+        if (quantityChange > 0) {
+            // Check current stock in the database before deducting
+            String checkStockQuery = "SELECT stock FROM products WHERE product_id = ?";
+            try (PreparedStatement stmt = connection.prepareStatement(checkStockQuery)) {
+                stmt.setInt(1, productId);
+                ResultSet rs = stmt.executeQuery();
+                if (rs.next()) {
+                    int currentStock = rs.getInt("stock");
+                    System.out.println("Current stock for product ID " + productId + ": " + currentStock);
 
-                // Check if there's enough stock to deduct
-                if (currentStock < quantityToDeduct) {
-                    System.err.println("Not enough stock for product ID " + productId);
-                    return false;  // Not enough stock to deduct
+                    // Check if there's enough stock to deduct
+                    if (currentStock < quantityChange) {
+                        System.err.println("Not enough stock for product ID " + productId);
+                        return false;  // Not enough stock to deduct
+                    }
+                } else {
+                    System.err.println("Product ID " + productId + " not found.");
+                    return false;  // Product not found in database
                 }
-            } else {
-                System.err.println("Product ID " + productId + " not found.");
-                return false;  // Product not found in database
+            } catch (SQLException e) {
+                System.err.println("Error checking stock for product ID: " + productId);
+                e.printStackTrace();
+                return false;
             }
-        } catch (SQLException e) {
-            System.err.println("Error checking stock for product ID: " + productId);
-            e.printStackTrace();
-            return false;
         }
 
-        // Deduct the stock from the database
+        // Update the stock in the database
         String updateStockQuery = "UPDATE products SET stock = stock - ? WHERE product_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(updateStockQuery)) {
-            stmt.setInt(1, quantityToDeduct);
+            stmt.setInt(1, quantityChange); // Positive for deduction, negative for addition
             stmt.setInt(2, productId);
             int rowsAffected = stmt.executeUpdate();
             if (rowsAffected > 0) {
-                System.out.println("Stock updated for product ID: " + productId);  // Stock deducted
-                return true;  // Stock successfully deducted
+                System.out.println("Stock updated for product ID: " + productId);  // Stock updated
+                return true;  // Stock successfully updated
             } else {
                 System.err.println("Failed to update stock for product ID: " + productId);
-                return false;  // Failed to deduct stock from database
+                return false;  // Failed to update stock in the database
             }
         } catch (SQLException e) {
             System.err.println("Error updating stock for product ID: " + productId);
@@ -215,6 +217,7 @@ public class Database {
             return false;
         }
     }
+
 
     // Method to record a sale in the sales table
     public void recordSale(int productId, int quantity, double totalPrice) {
